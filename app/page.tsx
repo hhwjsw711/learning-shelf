@@ -18,6 +18,13 @@ const slab = "'Zilla Slab', serif";
 const noteShadow = "2px 3px 15px rgba(45,42,38,0.22), 0 1px 3px rgba(45,42,38,0.28)";
 const chipFills = ["#FFE066", "#A5D8FF", "#FFC9C9", "#B2F2BB", "#FFCC80", "#D0BFFF"];
 const panelRotations = ["-0.7deg", "0.8deg", "-0.5deg", "0.6deg"];
+
+// warm cream paper stock for the page mounts — deliberately not pure white
+const SHEET = "#EBE2CC";
+// fractal-noise paper grain, desaturated, as a tiny tiling SVG
+const PAPER_GRAIN = `url("data:image/svg+xml,${encodeURIComponent(
+  "<svg xmlns='http://www.w3.org/2000/svg' width='150' height='150'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='150' height='150' filter='url(#n)'/></svg>",
+)}")`;
 const pinFills = [
   "radial-gradient(circle at 30% 30%, #ff6b6b, #c92a2a)",
   "radial-gradient(circle at 30% 30%, #4dabf7, #1864ab)",
@@ -192,7 +199,6 @@ function PinnedPage({
   label: string;
   children: ReactNode;
 }) {
-  const sheet = "#FBF8EF";
   return (
     <div
       style={{
@@ -218,28 +224,30 @@ function PinnedPage({
         }}
       />
 
-      {/* the paper sheet: cream margin, a soft top highlight, and a layered
-          shadow that reads as paper lifted off cork */}
+      {/* the paper sheet: warm cream margin (not white), a faint top highlight,
+          a fractal-noise grain overlay, and a layered shadow that reads as
+          paper lifted off the cork */}
       <div
         style={{
           position: "relative",
-          background: `linear-gradient(180deg, #FFFDF7 0%, ${sheet} 22%)`,
-          padding: "clamp(14px, 1.6vw, 22px)",
+          background: `linear-gradient(180deg, #F3EAD3 0%, ${SHEET} 34%)`,
+          padding: "clamp(15px, 1.7vw, 24px)",
           boxShadow:
             "0 1px 1px rgba(45,42,38,0.18), 5px 10px 18px rgba(45,42,38,0.30), 14px 22px 34px rgba(45,42,38,0.18)",
           borderRadius: "2px",
+          overflow: "hidden",
         }}
       >
         {/* handwritten filename in the paper margin */}
         <div
           style={{
             position: "absolute",
-            bottom: "clamp(3px, 0.5vw, 6px)",
+            bottom: "clamp(2px, 0.4vw, 6px)",
             right: "clamp(16px, 2vw, 26px)",
             fontFamily: "'Caveat', cursive",
             fontWeight: 600,
             fontSize: "17px",
-            color: "rgba(45,42,38,0.5)",
+            color: "rgba(45,42,38,0.42)",
             zIndex: 2,
           }}
         >
@@ -248,19 +256,19 @@ function PinnedPage({
 
         {children}
 
-        {/* peeled dog-ear at the bottom-right corner */}
+        {/* paper-grain overlay — sits above everything at low opacity so the
+            whole page reads as printed on textured stock */}
         <div
           aria-hidden
           style={{
             position: "absolute",
-            right: 0,
-            bottom: 0,
-            width: "34px",
-            height: "34px",
-            background: `linear-gradient(135deg, transparent 0 50%, ${sheet} 50% 100%)`,
-            boxShadow: "-3px -3px 6px rgba(45,42,38,0.22)",
-            borderTop: "1px solid rgba(45,42,38,0.10)",
-            borderLeft: "1px solid rgba(45,42,38,0.10)",
+            inset: 0,
+            backgroundImage: PAPER_GRAIN,
+            backgroundSize: "150px 150px",
+            mixBlendMode: "multiply",
+            opacity: 0.09,
+            pointerEvents: "none",
+            zIndex: 7,
           }}
         />
       </div>
@@ -268,7 +276,7 @@ function PinnedPage({
       {/* a tack pinning the sheet, color rotating per page */}
       <Pin
         fill={pinFills[index % pinFills.length]}
-        style={{ left: "28px", top: "-9px", transform: "none", zIndex: 6 }}
+        style={{ left: "28px", top: "-9px", transform: "none", zIndex: 8 }}
       />
     </div>
   );
