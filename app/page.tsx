@@ -7,6 +7,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import { listAvatarAuthors, listDocs, type DocMeta } from "@/lib/store";
 import { AuthorPanel, type AuthorGroup } from "@/lib/sections";
+import { HowItWorks } from "./HowItWorks";
 
 export const dynamic = "force-dynamic";
 
@@ -170,6 +171,10 @@ export default async function ShelfPage() {
               invite sticky is the CTA and this would be redundant */}
           {groups.length === 0 && <EmptyCorner index={0} lonely />}
         </div>
+
+        {/* the explainer deck — the board's Scatterbrain chrome is a
+            presentation system at heart, so the tour is an actual deck */}
+        <HowItWorks />
 
         <footer
           style={{
