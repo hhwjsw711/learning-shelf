@@ -97,6 +97,16 @@ function CobaltGridPanel({ group }: { group: AuthorGroup }) {
         padding: "34px clamp(24px, 4vw, 48px) 38px",
       }}
     >
+      {/* the ledger row can't fit three columns on a phone — drop the meta
+          under the title there (inline styles can't express media queries) */}
+      <style>{`
+        .cg-row { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; }
+        .cg-meta { text-align: right; }
+        @media (max-width: 560px) {
+          .cg-row { grid-template-columns: 36px minmax(0, 1fr); }
+          .cg-meta { grid-column: 2; text-align: left; padding-top: 0 !important; }
+        }
+      `}</style>
       <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: "20px", borderBottom: `1.5px solid ${ink}`, paddingBottom: "10px" }}>
         <h2 style={{ margin: 0, fontFamily: serif, fontWeight: 500, fontStyle: "italic", fontSize: "clamp(32px,4vw,46px)", lineHeight: 0.95, color: ink }}>
           {group.author}
@@ -110,9 +120,8 @@ function CobaltGridPanel({ group }: { group: AuthorGroup }) {
         <a
           key={doc.slug}
           href={`/d/${doc.slug}`}
+          className="cg-row"
           style={{
-            display: "grid",
-            gridTemplateColumns: "36px 1fr auto",
             gap: "18px",
             alignItems: "start",
             padding: "18px 0",
@@ -133,7 +142,7 @@ function CobaltGridPanel({ group }: { group: AuthorGroup }) {
               <ProgressBar doc={doc} ink={ink} accent={ink} font={sans} />
             </span>
           </span>
-          <span style={{ fontFamily: mono, fontSize: "11px", letterSpacing: "0.04em", textAlign: "right", whiteSpace: "nowrap", paddingTop: "8px", opacity: 0.85 }}>
+          <span className="cg-meta" style={{ fontFamily: mono, fontSize: "11px", letterSpacing: "0.04em", paddingTop: "8px", opacity: 0.85 }}>
             {doc.title}
             <br />
             {doc.template} · {date(doc.updatedAt)}

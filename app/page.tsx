@@ -150,7 +150,9 @@ export default async function ShelfPage() {
           )}
         </header>
 
-        <div style={{ display: "grid", gap: "56px", paddingBottom: "24px" }}>
+        {/* minmax(0,1fr): without it the implicit grid column auto-sizes to the
+            panels' max-content width and overflows the sheet on narrow screens */}
+        <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: "56px", paddingBottom: "24px" }}>
           {groups.map((group, i) => (
             <PinnedPage key={group.author} index={i}>
               <AuthorPanel group={group} />
