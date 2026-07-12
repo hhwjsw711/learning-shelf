@@ -1,12 +1,13 @@
 "use client";
 
-// The board's clickable ephemera: the polaroid and the depth stickies. Both
-// open FLIP-animated modals — the element appears to lift off the paper from
-// exactly where it was pinned and grow into the middle of the screen, then
-// settle back on close. Handwritten bits use Permanent Marker (the sharpie).
+// The board's clickable ephemera: the polaroid and the depth tags. Both open
+// modals via Motion's shared-element (layoutId) transition — the element
+// morphs from where it sits on the paper into the centered enlargement and
+// morphs back on close. Handwritten bits use Permanent Marker (the sharpie).
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { createPortal } from "react-dom";
+import { AnimatePresence, motion } from "motion/react";
 import type { DocMeta } from "@/lib/store";
 import { DEPTH_LEVELS, depthIndex, projectedDepthIndex } from "@/lib/readtime";
 
@@ -14,7 +15,6 @@ const ink = "#2D2A26";
 const script = "'Caveat', cursive";
 const slab = "'Zilla Slab', serif";
 const sharpie = "'Permanent Marker', cursive";
-const noteShadow = "2px 3px 15px rgba(45,42,38,0.22), 0 1px 3px rgba(45,42,38,0.28)";
 
 const PIN_FILLS = [
   "radial-gradient(circle at 30% 30%, #ff6b6b, #c92a2a)",
@@ -29,77 +29,30 @@ const STICKY_FILLS = [
   "#D0BFFF",
 ];
 
-// ── The FLIP modal ────────────────────────────────────────────────────────
-// Measure where the element sits on the paper, mount a fixed clone there,
-// then let CSS transition it into the centered, enlarged state (and back).
+const MORPH = { type: "spring", bounce: 0.18, visualDuration: 0.32 } as const;
 
-type Origin = { left: number; top: number; width: number };
-
-function useFlip() {
-  const [origin, setOrigin] = useState<Origin | null>(null);
-  const [entered, setEntered] = useState(false);
-
-  function open(el: HTMLElement) {
-    const r = el.getBoundingClientRect();
-    setOrigin({ left: r.left, top: r.top, width: r.width });
-  }
-  function close() {
-    setEntered(false);
-    setTimeout(() => setOrigin(null), 340);
-  }
-  useEffect(() => {
-    if (!origin) return;
-    // a beat after mount so the clone paints at the origin before moving
-    // (setTimeout, not rAF — background tabs throttle rAF indefinitely)
-    const id = setTimeout(() => setEntered(true), 30);
-    return () => clearTimeout(id);
-  }, [origin]);
-
-  return { origin, entered, open, close };
-}
-
-function FlipModal({
-  origin,
-  entered,
-  targetWidth,
-  onClose,
-  children,
-}: {
-  origin: Origin;
-  entered: boolean;
-  targetWidth: string;
-  onClose: () => void;
-  children: React.ReactNode;
-}) {
+// Full-screen dimmed backdrop that fades while the shared element morphs.
+function Backdrop({ onClose, children }: { onClose: () => void; children: React.ReactNode }) {
   return createPortal(
-    <div
+    <motion.div
       role="dialog"
       aria-modal
       onClick={onClose}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
       style={{
         position: "fixed",
         inset: 0,
-        background: entered ? "rgba(45,42,38,0.6)" : "rgba(45,42,38,0)",
-        transition: "background 320ms ease",
+        background: "rgba(45,42,38,0.6)",
+        display: "grid",
+        placeItems: "center",
+        padding: "20px",
         zIndex: 60,
       }}
     >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          position: "fixed",
-          left: entered ? "50%" : `${origin.left}px`,
-          top: entered ? "50%" : `${origin.top}px`,
-          width: entered ? targetWidth : `${origin.width}px`,
-          transform: entered ? "translate(-50%, -50%) rotate(0.6deg)" : "none",
-          transition: "left 320ms cubic-bezier(.2,.8,.25,1), top 320ms cubic-bezier(.2,.8,.25,1), width 320ms cubic-bezier(.2,.8,.25,1), transform 320ms cubic-bezier(.2,.8,.25,1)",
-          maxHeight: "88vh",
-          overflowY: "auto",
-        }}
-      >
-        {children}
-      </div>
-    </div>,
+      {children}
+    </motion.div>,
     document.body,
   );
 }
@@ -107,19 +60,22 @@ function FlipModal({
 // ── Polaroid ──────────────────────────────────────────────────────────────
 
 export function Polaroid({ src, name, index }: { src: string; name: string; index: number }) {
-  const { origin, entered, open, close } = useFlip();
+  const [open, setOpen] = useState(false);
   const lean = index % 2 === 0 ? "4deg" : "-3.5deg";
+  const id = `polaroid-${name.toLowerCase()}`;
 
   return (
     <>
-      <button
-        onClick={(e) => open(e.currentTarget)}
+      <motion.button
+        layoutId={id}
+        transition={MORPH}
+        onClick={() => setOpen(true)}
         aria-label={`enlarge ${name}'s photo`}
         style={{
           position: "absolute",
           top: "-26px",
           right: "clamp(10px, 4vw, 42px)",
-          transform: `rotate(${lean})`,
+          rotate: lean,
           background: "#FDFDFB",
           padding: "7px 7px 24px",
           border: "none",
@@ -137,41 +93,47 @@ export function Polaroid({ src, name, index }: { src: string; name: string; inde
           height={86}
           style={{ display: "block", width: "86px", height: "86px", objectFit: "cover", filter: "saturate(0.92) contrast(1.02)" }}
         />
-      </button>
+      </motion.button>
 
-      {origin && (
-        <FlipModal origin={origin} entered={entered} targetWidth="min(78vw, 380px)" onClose={close}>
-          <div
-            style={{
-              background: "#FDFDFB",
-              padding: "4.5% 4.5% 0",
-              boxShadow: "0 6px 16px rgba(20,16,12,0.45), 0 24px 60px rgba(20,16,12,0.4)",
-              cursor: "zoom-out",
-            }}
-            onClick={close}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={src}
-              alt={name}
-              style={{ display: "block", width: "100%", aspectRatio: "1 / 1", objectFit: "cover", filter: "saturate(0.92) contrast(1.02)" }}
-            />
-            {/* the sharpie chin */}
-            <div
+      <AnimatePresence>
+        {open && (
+          <Backdrop onClose={() => setOpen(false)}>
+            <motion.div
+              layoutId={id}
+              transition={MORPH}
+              onClick={() => setOpen(false)}
               style={{
-                fontFamily: sharpie,
-                fontSize: "clamp(24px, 6vw, 34px)",
-                color: "#33302B",
-                textAlign: "center",
-                padding: "16px 0 20px",
-                transform: "rotate(-1.6deg)",
+                width: "min(78vw, 380px)",
+                background: "#FDFDFB",
+                padding: "16px 16px 0",
+                boxShadow: "0 6px 16px rgba(20,16,12,0.45), 0 24px 60px rgba(20,16,12,0.4)",
+                rotate: "0.6deg",
+                cursor: "zoom-out",
               }}
             >
-              {name.toLowerCase()}
-            </div>
-          </div>
-        </FlipModal>
-      )}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={src}
+                alt={name}
+                style={{ display: "block", width: "100%", aspectRatio: "1 / 1", objectFit: "cover", filter: "saturate(0.92) contrast(1.02)" }}
+              />
+              {/* the sharpie chin */}
+              <div
+                style={{
+                  fontFamily: sharpie,
+                  fontSize: "clamp(24px, 6vw, 34px)",
+                  color: "#33302B",
+                  textAlign: "center",
+                  padding: "16px 0 20px",
+                  transform: "rotate(-1.6deg)",
+                }}
+              >
+                {name.toLowerCase()}
+              </div>
+            </motion.div>
+          </Backdrop>
+        )}
+      </AnimatePresence>
     </>
   );
 }
@@ -179,32 +141,35 @@ export function Polaroid({ src, name, index }: { src: string; name: string; inde
 // ── Depth tag ─────────────────────────────────────────────────────────────
 // A tiny sticky stuck next to the doc's title — just the current level's
 // emoji + name. Board language (post-it fill, hand lean, Caveat) on top of
-// the author's card, and a click opens the full depth report. The cards are
-// links, so the tag swallows the click instead of navigating.
+// the author's card; a click morphs it into the full depth report. The cards
+// are links, so the tag swallows the click instead of navigating.
 
 export function DepthTag({ doc, tilt = 0 }: { doc: DocMeta; tilt?: number }) {
-  const { origin, entered, open, close } = useFlip();
+  const [open, setOpen] = useState(false);
   if (doc.wordCount <= 0) return null;
   const now = depthIndex(doc.wordCount);
   const fill = STICKY_FILLS[tilt % STICKY_FILLS.length];
   const pin = PIN_FILLS[tilt % PIN_FILLS.length];
+  const id = `depth-${doc.slug}`;
 
   return (
     <>
-      <span
+      <motion.span
+        layoutId={id}
+        transition={MORPH}
         role="button"
         tabIndex={0}
         title={`${doc.wordCount.toLocaleString()} words written so far — click for the depth report`}
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
-          open(e.currentTarget);
+          setOpen(true);
         }}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
             e.stopPropagation();
-            open(e.currentTarget);
+            setOpen(true);
           }
         }}
         style={{
@@ -214,7 +179,7 @@ export function DepthTag({ doc, tilt = 0 }: { doc: DocMeta; tilt?: number }) {
           background: fill,
           padding: "3px 9px 4px",
           boxShadow: "1px 2px 6px rgba(45,42,38,0.3)",
-          transform: `rotate(${tilt % 2 === 0 ? "-2deg" : "2deg"})`,
+          rotate: tilt % 2 === 0 ? "-2deg" : "2deg",
           fontFamily: script,
           fontWeight: 700,
           fontSize: "14px",
@@ -227,13 +192,27 @@ export function DepthTag({ doc, tilt = 0 }: { doc: DocMeta; tilt?: number }) {
       >
         <span aria-hidden style={{ fontSize: "13px" }}>{DEPTH_LEVELS[now].emoji}</span>
         {DEPTH_LEVELS[now].label}
-      </span>
+      </motion.span>
 
-      {origin && (
-        <FlipModal origin={origin} entered={entered} targetWidth="min(92vw, 440px)" onClose={close}>
-          <DepthReport doc={doc} fill={fill} pin={pin} />
-        </FlipModal>
-      )}
+      <AnimatePresence>
+        {open && (
+          <Backdrop onClose={() => setOpen(false)}>
+            <motion.div
+              layoutId={id}
+              transition={MORPH}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                width: "min(92vw, 440px)",
+                maxHeight: "88vh",
+                overflowY: "auto",
+                rotate: "0.6deg",
+              }}
+            >
+              <DepthReport doc={doc} fill={fill} pin={pin} />
+            </motion.div>
+          </Backdrop>
+        )}
+      </AnimatePresence>
     </>
   );
 }
