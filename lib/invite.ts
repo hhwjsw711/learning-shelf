@@ -4,19 +4,14 @@
 // group likes to learn), and the beautiful-html-templates skill. The friend
 // pastes the whole thing into Claude Code and their Claude installs itself.
 
-const SHELF_URL = "https://noah-learning-shelf.vercel.app";
+import { STYLE_TOKENS } from "./styleTokens";
 
-export const BAND_STYLES = [
-  { id: "daisy-days", label: "daisy days — pastel daisies & rounded cards" },
-  { id: "block-frame", label: "blockframe — neon blocks & heavy borders" },
-  { id: "cobalt-grid", label: "cobalt grid — graph paper & electric serif" },
-  { id: "plain", label: "plain — keep it simple (for now)" },
-] as const;
+const SHELF_URL = "https://noah-learning-shelf.vercel.app";
 
 export function buildInviteInstaller(rawName: string, style: string): string {
   const name = rawName.trim().replace(/[^a-zA-Z0-9 '-]/g, "").slice(0, 40) || "Friend";
   const author = name.toLowerCase().split(/\s+/)[0];
-  const bandStyle = BAND_STYLES.some((b) => b.id === style) ? style : "plain";
+  const bandStyle = STYLE_TOKENS.some((b) => b.id === style) ? style : "plain";
 
   return `# Welcome to The Shelf, ${name}!
 

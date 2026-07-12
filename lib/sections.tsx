@@ -8,6 +8,7 @@
 // (doc title · template · updated).
 
 import type { DocMeta } from "./store";
+import { TOKENS_BY_ID, type StyleToken } from "./styleTokens";
 
 export type AuthorGroup = {
   author: string;
@@ -23,8 +24,18 @@ export function AuthorPanel({ group }: { group: AuthorGroup }) {
       return <BlockFramePanel group={group} />;
     case "daisy-days":
       return <DaisyDaysPanel group={group} />;
-    default:
-      return <PlainPanel group={group} />;
+    case "8-bit-orbit":
+      return <EightBitOrbitPanel group={group} />;
+    case "pin-and-paper":
+      return <PinAndPaperPanel group={group} />;
+    default: {
+      const token = TOKENS_BY_ID[group.authorStyle];
+      return token ? (
+        <GenericPanel group={group} token={token} />
+      ) : (
+        <PlainPanel group={group} />
+      );
+    }
   }
 }
 
@@ -200,6 +211,203 @@ function Daisy({ color, ink, size = 30, style }: { color: string; ink: string; s
       <circle cx="20" cy="20" r="6" fill="#FDE68A" stroke={ink} strokeWidth="2" />
     </svg>
   );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// 8-BIT ORBIT — deep navy void, neon cyan/pink/yellow, pixel L-brackets,
+// Tektur display + Chakra Petch body + Space Mono captions, CRT energy.
+// ─────────────────────────────────────────────────────────────────────────
+function EightBitOrbitPanel({ group }: { group: AuthorGroup }) {
+  const void_ = "#0A0E27";
+  const navy = "#0F1B3D";
+  const cyan = "#5EDCF4";
+  const pink = "#F0A6CA";
+  const yellow = "#F4D03F";
+  const lav = "#E2D5F2";
+  const display = "'Tektur', system-ui, sans-serif";
+  const body = "'Chakra Petch', system-ui, sans-serif";
+  const mono = "'Space Mono', ui-monospace, monospace";
+  const accents = [cyan, pink, yellow];
+
+  return (
+    <section
+      id={group.author.toLowerCase()}
+      style={{
+        background: void_,
+        backgroundImage: `linear-gradient(${cyan}12 1px, transparent 1px), linear-gradient(90deg, ${cyan}12 1px, transparent 1px)`,
+        backgroundSize: "24px 24px",
+        border: `2px solid ${cyan}`,
+        boxShadow: `0 0 0 4px ${void_}, 6px 6px 0 ${pink}`,
+        padding: "30px clamp(24px, 4vw, 44px) 36px",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: "14px", flexWrap: "wrap", marginBottom: "24px" }}>
+        <span style={{ background: navy, color: yellow, fontFamily: mono, fontSize: "11px", letterSpacing: "0.1em", padding: "5px 12px", textTransform: "uppercase", border: `1px solid ${cyan}` }}>
+          player
+        </span>
+        <h2 style={{ margin: 0, fontFamily: display, fontWeight: 700, fontSize: "clamp(30px,4vw,46px)", lineHeight: 1, color: cyan, textShadow: `2px 2px 0 ${pink}, 4px 4px 0 ${yellow}`, textTransform: "uppercase" }}>
+          {group.author}
+        </h2>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(270px, 1fr))", gap: "22px" }}>
+        {group.docs.map((doc, i) => {
+          const ac = accents[i % accents.length];
+          return (
+            <a
+              key={doc.slug}
+              href={`/d/${doc.slug}`}
+              style={{ position: "relative", display: "block", background: "rgba(94,220,244,0.06)", border: `1.5px solid ${ac}`, padding: "18px", textDecoration: "none", color: lav }}
+            >
+              {/* pixel L-brackets at opposite corners */}
+              <span aria-hidden style={{ position: "absolute", top: "-2px", left: "-2px", width: "14px", height: "14px", borderTop: `3px solid ${ac}`, borderLeft: `3px solid ${ac}` }} />
+              <span aria-hidden style={{ position: "absolute", bottom: "-2px", right: "-2px", width: "14px", height: "14px", borderBottom: `3px solid ${ac}`, borderRight: `3px solid ${ac}` }} />
+              <h3 style={{ margin: 0, fontFamily: display, fontWeight: 700, fontSize: "23px", lineHeight: 1.05, color: ac, textTransform: "uppercase" }}>{doc.subject}</h3>
+              {doc.description && <p style={{ margin: "10px 0 0", fontFamily: body, fontSize: "13px", lineHeight: 1.55, color: lav }}>{doc.description}</p>}
+              <div style={{ marginTop: "12px", fontFamily: mono, fontSize: "10.5px", letterSpacing: "0.06em", color: yellow, textTransform: "uppercase", opacity: 0.85 }}>
+                {doc.title} · {date(doc.updatedAt)}
+              </div>
+            </a>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// PIN & PAPER — saturated yellow paper, ink-blue Caveat handwriting, red
+// accents, cards pinned slightly askew with hard ink-blue offset shadows.
+// ─────────────────────────────────────────────────────────────────────────
+function PinAndPaperPanel({ group }: { group: AuthorGroup }) {
+  const paper = "#EFE56A";
+  const cream = "#F8F1D6";
+  const ink = "#1F3A8A";
+  const red = "#C2342B";
+  const script = "'Caveat', cursive";
+  const body = "'Space Grotesk', system-ui, sans-serif";
+  const mono = "'DM Mono', ui-monospace, monospace";
+  const rotations = ["-1deg", "0.8deg", "-0.6deg", "1.2deg"];
+
+  return (
+    <section
+      id={group.author.toLowerCase()}
+      style={{
+        background: paper,
+        backgroundImage: "radial-gradient(circle at 20% 10%, rgba(255,255,255,0.35), transparent 45%), radial-gradient(circle at 90% 90%, rgba(31,58,138,0.10), transparent 40%)",
+        border: `1.5px solid ${ink}`,
+        boxShadow: `5px 6px 0 ${ink}`,
+        padding: "28px clamp(24px, 4vw, 44px) 36px",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "baseline", gap: "14px", marginBottom: "22px" }}>
+        <SafetyPin ink={ink} />
+        <h2 style={{ margin: 0, fontFamily: script, fontWeight: 700, fontSize: "clamp(38px,5vw,58px)", lineHeight: 0.9, color: ink }}>
+          {group.author}
+        </h2>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(270px, 1fr))", gap: "26px" }}>
+        {group.docs.map((doc, i) => (
+          <a
+            key={doc.slug}
+            href={`/d/${doc.slug}`}
+            style={{
+              display: "block",
+              background: cream,
+              border: `1.5px solid ${ink}`,
+              borderRadius: "4px",
+              boxShadow: `5px 6px 0 ${ink}`,
+              padding: "18px",
+              textDecoration: "none",
+              color: ink,
+              transform: `rotate(${rotations[i % rotations.length]})`,
+            }}
+          >
+            <div style={{ fontFamily: mono, fontSize: "11px", letterSpacing: "0.06em", color: red, textTransform: "uppercase", marginBottom: "8px" }}>
+              {doc.title}
+            </div>
+            <h3 style={{ margin: 0, fontFamily: script, fontWeight: 700, fontSize: "30px", lineHeight: 0.95, color: ink }}>{doc.subject}</h3>
+            {doc.description && <p style={{ margin: "8px 0 0", fontFamily: body, fontSize: "13px", lineHeight: 1.5, color: ink }}>{doc.description}</p>}
+            <div style={{ marginTop: "12px", fontFamily: mono, fontSize: "10.5px", letterSpacing: "0.05em", color: ink, opacity: 0.6 }}>
+              {date(doc.updatedAt)}
+            </div>
+          </a>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function SafetyPin({ ink }: { ink: string }) {
+  return (
+    <svg aria-hidden width="46" height="20" viewBox="0 0 46 20" style={{ transform: "rotate(-8deg)" }}>
+      <rect x="3" y="4" width="40" height="11" rx="5.5" fill="none" stroke={ink} strokeWidth="2" />
+      <circle cx="8" cy="9.5" r="3.5" fill="none" stroke={ink} strokeWidth="2" />
+      <line x1="8" y1="9.5" x2="40" y2="9.5" stroke={ink} strokeWidth="2" />
+    </svg>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// GENERIC — any template offered in the picker but without a bespoke
+// renderer gets a clean framed panel tinted by its real palette + display
+// font. Not a full clone, but recognizably that template's register.
+// ─────────────────────────────────────────────────────────────────────────
+function GenericPanel({ group, token }: { group: AuthorGroup; token: StyleToken }) {
+  const radius = token.radius ?? "0px";
+  // choose a readable text color for the accent header strip
+  const onAccent = isLight(token.accent) ? token.ink : "#ffffff";
+
+  return (
+    <section
+      id={group.author.toLowerCase()}
+      style={{
+        background: token.bg,
+        border: `2px solid ${token.ink}`,
+        borderRadius: radius,
+        boxShadow: `6px 6px 0 ${token.ink}`,
+        padding: "28px clamp(24px, 4vw, 44px) 34px",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap", marginBottom: "22px" }}>
+        <span style={{ background: token.accent, color: onAccent, fontFamily: token.body, fontWeight: 700, fontSize: "11px", letterSpacing: "0.1em", padding: "5px 12px", textTransform: "uppercase", borderRadius: radius }}>
+          {token.id}
+        </span>
+        <h2 style={{ margin: 0, fontFamily: token.display, fontWeight: 700, fontSize: "clamp(30px,4vw,48px)", lineHeight: 1, color: token.ink }}>
+          {group.author}
+        </h2>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(270px, 1fr))", gap: "22px" }}>
+        {group.docs.map((doc, i) => (
+          <a
+            key={doc.slug}
+            href={`/d/${doc.slug}`}
+            style={{ display: "flex", flexDirection: "column", background: "#ffffff", border: `2px solid ${token.ink}`, borderRadius: radius, boxShadow: `4px 4px 0 ${token.ink}`, textDecoration: "none", color: token.ink }}
+          >
+            <div style={{ height: "12px", background: i % 2 === 0 ? token.accent : token.accent2 ?? token.accent, borderBottom: `2px solid ${token.ink}`, borderRadius: radius === "0px" ? "0" : `${radius} ${radius} 0 0` }} />
+            <div style={{ padding: "18px", display: "grid", gap: "10px", alignContent: "start" }}>
+              <h3 style={{ margin: 0, fontFamily: token.display, fontWeight: 700, fontSize: "24px", lineHeight: 1.02 }}>{doc.subject}</h3>
+              {doc.description && <p style={{ margin: 0, fontFamily: token.body, fontSize: "13px", lineHeight: 1.55 }}>{doc.description}</p>}
+              <div style={{ fontFamily: token.body, fontWeight: 700, fontSize: "10.5px", textTransform: "uppercase", letterSpacing: "0.06em", opacity: 0.6, borderTop: `1.5px solid ${token.ink}`, paddingTop: "9px" }}>
+                {doc.title} · {date(doc.updatedAt)}
+              </div>
+            </div>
+          </a>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function isLight(hex: string): boolean {
+  const m = hex.replace("#", "");
+  if (m.length < 6) return true;
+  const r = parseInt(m.slice(0, 2), 16);
+  const g = parseInt(m.slice(2, 4), 16);
+  const b = parseInt(m.slice(4, 6), 16);
+  return (r * 299 + g * 587 + b * 114) / 1000 > 150;
 }
 
 // ─────────────────────────────────────────────────────────────────────────

@@ -6,6 +6,7 @@
 // Claude Code desktop app and their Claude sets everything up.
 
 import { useState } from "react";
+import { STYLE_TOKENS } from "@/lib/styleTokens";
 
 const ink = "#2D2A26";
 const display = "'Shrikhand', cursive";
@@ -13,16 +14,9 @@ const script = "'Caveat', cursive";
 const slab = "'Zilla Slab', serif";
 const noteShadow = "2px 3px 15px rgba(45,42,38,0.22), 0 1px 3px rgba(45,42,38,0.28)";
 
-const STYLES = [
-  { id: "daisy-days", label: "daisy days · pastel daisies & rounded cards" },
-  { id: "block-frame", label: "blockframe · neon blocks & heavy borders" },
-  { id: "cobalt-grid", label: "cobalt grid · graph paper & electric serif" },
-  { id: "plain", label: "plain · keep it simple for now" },
-];
-
 export default function InvitePage() {
   const [name, setName] = useState("");
-  const [style, setStyle] = useState("daisy-days");
+  const [style, setStyle] = useState(STYLE_TOKENS[0].id);
   const [installer, setInstaller] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -112,26 +106,52 @@ export default function InvitePage() {
               outline: "none",
             }}
           />
-          <label style={{ display: "block", fontFamily: script, fontWeight: 700, fontSize: "24px", margin: "18px 0 8px" }}>
-            their corner&apos;s design?
+          <label style={{ display: "block", fontFamily: script, fontWeight: 700, fontSize: "24px", margin: "18px 0 10px" }}>
+            their corner&apos;s design? — tap one
           </label>
-          <select
-            value={style}
-            onChange={(e) => setStyle(e.target.value)}
+          <div
             style={{
-              width: "100%",
-              fontFamily: slab,
-              fontSize: "16px",
-              padding: "10px 12px",
-              border: `2px solid ${ink}`,
-              background: "#FFFDF5",
-              color: ink,
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
+              gap: "12px",
+              maxHeight: "360px",
+              overflowY: "auto",
+              paddingRight: "4px",
             }}
           >
-            {STYLES.map((s) => (
-              <option key={s.id} value={s.id}>{s.label}</option>
-            ))}
-          </select>
+            {STYLE_TOKENS.map((s) => {
+              const active = style === s.id;
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => setStyle(s.id)}
+                  title={s.label}
+                  style={{
+                    display: "block",
+                    padding: 0,
+                    background: "#FFFDF5",
+                    border: active ? `3px solid ${ink}` : `2px solid rgba(45,42,38,0.35)`,
+                    boxShadow: active ? `3px 3px 0 ${ink}` : "none",
+                    cursor: "pointer",
+                    textAlign: "left",
+                    overflow: "hidden",
+                  }}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={s.preview}
+                    alt={s.label}
+                    loading="lazy"
+                    style={{ display: "block", width: "100%", height: "90px", objectFit: "cover", borderBottom: `2px solid ${ink}` }}
+                  />
+                  <span style={{ display: "block", padding: "7px 9px", fontFamily: slab, fontWeight: active ? 700 : 500, fontSize: "12px", lineHeight: 1.25, color: ink }}>
+                    {s.label.split(" — ")[0]}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
           <button
             onClick={mint}
             disabled={busy || !name.trim()}
