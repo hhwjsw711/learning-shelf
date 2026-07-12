@@ -11,24 +11,42 @@ export async function GET(request: Request): Promise<Response> {
   const author = (url.searchParams.get("author") ?? "").toLowerCase();
   const token = url.searchParams.get("token") ?? "";
 
+  const wantsJson = url.searchParams.get("json") === "1";
+  const fail = (status: number, message: string) =>
+    wantsJson
+      ? new Response(JSON.stringify({ error: message }), {
+          status,
+          headers: { "content-type": "application/json" },
+        })
+      : new Response(message, {
+          status,
+          headers: { "content-type": "text/plain; charset=utf-8" },
+        });
+
   if (!author || !token) {
-    return new Response("need ?author= and ?token= (both are in your kit)", {
-      status: 400,
-      headers: { "content-type": "text/plain; charset=utf-8" },
-    });
+    return fail(400, "need your name and your owner token (both are in your kit)");
   }
 
   // Unlike the write routes, refuse unclaimed authors here — a sign-in must
   // never claim a name as a side effect.
   const record = await getAuthorRecord(author);
   if (!record) {
-    return new Response("no such member", { status: 404 });
+    return fail(404, `no member named "${author}" on this board`);
   }
   const owner = await verifyOwner(author, token);
   if (!owner.ok) {
-    return new Response("wrong token", { status: 403 });
+    return fail(403, "that token doesn't match — check the x-owner-token line in your learning-shelf SKILL.md");
   }
 
+  if (wantsJson) {
+    return new Response(JSON.stringify({ ok: true }), {
+      status: 200,
+      headers: {
+        "content-type": "application/json",
+        "set-cookie": ownerCookieHeader(author, token),
+      },
+    });
+  }
   return new Response(null, {
     status: 302,
     headers: {

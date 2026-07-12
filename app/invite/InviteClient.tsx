@@ -370,6 +370,7 @@ export function InviteClient({ viewer }: { viewer: string | null }) {
             />
           </div>
         )}
+        <MemberSignIn />
       </div>
     </main>
   );
@@ -515,3 +516,113 @@ function AlreadyOnBoard({ viewer }: { viewer: string }) {
     </main>
   );
 }
+
+// The way back in for an existing member on a new browser: their owner
+// token (the x-owner-token line in their learning-shelf SKILL.md) trades
+// for the member cookie. Deliberately small — a scribble, not a form.
+function MemberSignIn() {
+  const [expanded, setExpanded] = useState(false);
+  const [name, setName] = useState("");
+  const [token, setToken] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function signIn() {
+    if (!name.trim() || !token.trim()) return;
+    setBusy(true);
+    setError(null);
+    const res = await fetch(
+      `/api/session?json=1&author=${encodeURIComponent(name.trim().toLowerCase())}&token=${encodeURIComponent(token.trim())}`,
+    );
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setError(data.error ?? "sign-in failed");
+      setBusy(false);
+      return;
+    }
+    window.location.href = "/";
+  }
+
+  return (
+    <div style={{ marginTop: "34px" }}>
+      {!expanded ? (
+        <button
+          onClick={() => setExpanded(true)}
+          style={{
+            background: "none",
+            border: "none",
+            padding: 0,
+            cursor: "pointer",
+            fontFamily: script,
+            fontWeight: 700,
+            fontSize: "21px",
+            color: "#3B2F21",
+            transform: "rotate(-0.6deg)",
+          }}
+        >
+          already a member? sign back in ✎
+        </button>
+      ) : (
+        <div
+          style={{
+            position: "relative",
+            display: "inline-block",
+            background: "#FFFDF5",
+            border: `2px solid ${ink}`,
+            padding: "18px 22px 20px",
+            boxShadow: noteShadow,
+            transform: "rotate(0.4deg)",
+            maxWidth: "440px",
+          }}
+        >
+          <p style={{ margin: 0, fontFamily: script, fontWeight: 700, fontSize: "22px" }}>
+            welcome back ✎
+          </p>
+          <p style={{ margin: "6px 0 12px", fontFamily: slab, fontSize: "13.5px", lineHeight: 1.5, opacity: 0.8 }}>
+            your member secret is the <code style={{ fontFamily: "ui-monospace, monospace", fontSize: "12px" }}>x-owner-token</code>{" "}
+            line in your learning-shelf SKILL.md — ask your agent for it.
+          </p>
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="your name"
+              style={{ fontFamily: slab, fontSize: "15px", padding: "8px 12px", border: `2px solid ${ink}`, background: "#fff", color: ink, outline: "none", width: "120px" }}
+            />
+            <input
+              value={token}
+              onChange={(e) => setToken(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && signIn()}
+              placeholder="member secret"
+              type="password"
+              style={{ fontFamily: "ui-monospace, monospace", fontSize: "14px", padding: "8px 12px", border: `2px solid ${ink}`, background: "#fff", color: ink, outline: "none", flex: 1, minWidth: "160px" }}
+            />
+            <button
+              onClick={signIn}
+              disabled={busy || !name.trim() || !token.trim()}
+              style={{
+                fontFamily: display,
+                fontSize: "14px",
+                padding: "8px 16px",
+                background: "#A5D8FF",
+                color: ink,
+                border: `2px solid ${ink}`,
+                boxShadow: "2px 2px 0 rgba(45,42,38,0.5)",
+                cursor: busy ? "wait" : "pointer",
+                opacity: !name.trim() || !token.trim() ? 0.6 : 1,
+              }}
+            >
+              {busy ? "signing in…" : "sign in"}
+            </button>
+          </div>
+          {error && (
+            <p style={{ margin: "10px 0 0", fontFamily: slab, fontWeight: 600, fontSize: "13.5px", color: "#B23B3B" }}>
+              {error}
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
