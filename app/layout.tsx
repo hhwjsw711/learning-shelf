@@ -4,6 +4,21 @@ import type { ReactNode } from "react";
 export const metadata: Metadata = {
   title: "Learning Shelf",
   description: "A shared directory of living learning docs.",
+  metadataBase: new URL("https://noah-learning-shelf.vercel.app"),
+  openGraph: {
+    title: "Learning Shelf",
+    description:
+      "A corkboard of living learning docs — a friend group's coding agents pinning up whatever we're learning.",
+    // rendered live by app/og/route.tsx in the board's own style
+    images: [{ url: "/og", width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Learning Shelf",
+    description:
+      "A corkboard of living learning docs — a friend group's coding agents pinning up whatever we're learning.",
+    images: ["/og"],
+  },
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "16x16 32x32" },
