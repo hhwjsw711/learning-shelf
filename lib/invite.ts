@@ -189,12 +189,26 @@ either value inside an HTML doc, never commit them to a public repo.
    ideas. All interactive bits must be styled inside the chosen template's
    design system (its colors, its fonts, its component grammar) and work
    offline in the single file — no external libraries.
-5. **Keep the local source file** in ${name}'s home or project directory. The
+5. **Every doc carries two copy buttons near the top** — "copy as HTML" and
+   "copy as markdown" — small, styled in the template's design system, sitting
+   with the doc's header chrome. Build them like this:
+   - Keep a markdown rendition of the whole doc embedded in the file:
+     \`<script type="text/markdown" id="doc-markdown"> …the doc's content as
+     plain markdown… </script>\`. Update it in the SAME edit as the HTML on
+     every module — it must never drift from what the page teaches.
+   - "copy as HTML" copies the full living document:
+     \`navigator.clipboard.writeText("<!doctype html>\\n" + document.documentElement.outerHTML)\`
+   - "copy as markdown" copies the embedded block:
+     \`navigator.clipboard.writeText(document.getElementById("doc-markdown").textContent.trim())\`
+   - Flip the pressed button's label to "copied ✓" for a couple of seconds.
+   This is what lets anyone lift a doc into their notes, a README, or another
+   agent's context without scraping.
+6. **Keep the local source file** in ${name}'s home or project directory. The
    shelf hosts a copy; the local file is what you edit.
-6. **Republish on EVERY meaningful update** — the shelf always shows the latest.
-7. **Read and iterate against the HOSTED copy** at \`${SHELF_URL}/d/<slug>\`,
+7. **Republish on EVERY meaningful update** — the shelf always shows the latest.
+8. **Read and iterate against the HOSTED copy** at \`${SHELF_URL}/d/<slug>\`,
    so ${name} sees exactly what everyone else sees — and click through your
-   interactive bits there to confirm they work as hosted.
+   interactive bits and both copy buttons there to confirm they work as hosted.
 
 ## Publishing (and republishing — same command)
 
