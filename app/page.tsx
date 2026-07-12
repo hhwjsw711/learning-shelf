@@ -62,7 +62,7 @@ export default async function ShelfPage() {
               transform: "rotate(-1.2deg)",
             }}
           >
-            The Shelf
+            Learning Shelf
           </h1>
           <p
             style={{
@@ -114,6 +114,29 @@ export default async function ShelfPage() {
               </span>
               <span style={{ display: "block", marginTop: "4px", fontFamily: script, fontWeight: 600, fontSize: "18px" }}>
                 got the password? grab your kit ✂
+              </span>
+            </a>
+            <a
+              href="https://github.com/noahgsolomon/learning-shelf"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                position: "relative",
+                display: "inline-block",
+                background: "linear-gradient(135deg, #C5B5E0 0%, #B39DDB 100%)",
+                padding: "18px 24px 16px",
+                boxShadow: noteShadow,
+                transform: "rotate(-1.8deg)",
+                textDecoration: "none",
+                color: ink,
+              }}
+            >
+              <Pin fill={pinFills[1]} />
+              <span style={{ display: "block", fontFamily: display, fontSize: "20px", lineHeight: 1.1 }}>
+                ★ star on github
+              </span>
+              <span style={{ display: "block", marginTop: "4px", fontFamily: script, fontWeight: 600, fontSize: "18px" }}>
+                built by noah — say hi ✎
               </span>
             </a>
           </div>

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 export const metadata: Metadata = {
-  title: "The Shelf",
+  title: "Learning Shelf",
   description: "A shared directory of living learning docs.",
 };
 
