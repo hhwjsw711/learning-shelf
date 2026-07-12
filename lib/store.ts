@@ -21,6 +21,10 @@ export type DocMeta = {
   modulesDone: number;
   modulesTotal: number;
   currentModule: string;
+  // Derived by the server at publish time from the doc's visible text —
+  // never uploaded, so it can't drift from the actual document.
+  readMinutes: number;
+  wordCount: number;
   updatedAt: string; // ISO
 };
 
@@ -99,6 +103,8 @@ export async function listDocs(): Promise<DocMeta[]> {
     if (typeof m.modulesDone !== "number") m.modulesDone = 0;
     if (typeof m.modulesTotal !== "number") m.modulesTotal = 0;
     if (!m.currentModule) m.currentModule = "";
+    if (typeof m.readMinutes !== "number") m.readMinutes = 0;
+    if (typeof m.wordCount !== "number") m.wordCount = 0;
   }
 
   return metas.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));

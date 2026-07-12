@@ -11,6 +11,7 @@
 
 import { deleteDoc, getDocMeta, publishDoc } from "@/lib/store";
 import { ownerTokenFrom, parseOwnerCookie, verifyOwner } from "@/lib/owner";
+import { measureRead } from "@/lib/readtime";
 
 const SLUG_PATTERN = /^[a-z0-9][a-z0-9-]{0,63}$/;
 const MAX_HTML_BYTES = 5 * 1024 * 1024;
@@ -91,6 +92,8 @@ export async function POST(request: Request): Promise<Response> {
     {
       slug, title, subject, description, author, template, authorStyle,
       modulesDone, modulesTotal, currentModule,
+      // measured server-side from the doc itself, never client-supplied
+      ...measureRead(html),
     },
     html,
   );

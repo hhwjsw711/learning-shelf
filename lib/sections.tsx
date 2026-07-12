@@ -45,6 +45,9 @@ export function AuthorPanel({ group }: { group: AuthorGroup }) {
 }
 
 const date = (iso: string) => iso.slice(0, 10);
+// "~14 min" — measured by the server at publish time; hidden for old docs
+// published before the field existed
+const read = (doc: DocMeta) => (doc.readMinutes > 0 ? ` · ~${doc.readMinutes} min` : "");
 
 // The empty corner of a member who has joined (via their kit's hello call)
 // but hasn't pinned a first doc yet. Token-driven so it already wears their
@@ -192,7 +195,7 @@ function CobaltGridPanel({ group }: { group: AuthorGroup }) {
           <span className="cg-meta" style={{ fontFamily: mono, fontSize: "11px", letterSpacing: "0.04em", paddingTop: "8px", opacity: 0.85 }}>
             {doc.title}
             <br />
-            {doc.template} · {date(doc.updatedAt)}
+            {doc.template} · {date(doc.updatedAt)}{read(doc)}
           </span>
         </a>
       ))}
@@ -241,7 +244,7 @@ function BlockFramePanel({ group }: { group: AuthorGroup }) {
               <ProgressBar doc={doc} ink={black} accent={fills[i % fills.length]} font={body} />
               <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", fontFamily: body, fontWeight: 700, fontSize: "10.5px", textTransform: "uppercase", letterSpacing: "0.07em", borderTop: `2px solid ${black}`, paddingTop: "9px" }}>
                 <span>{doc.title}</span>
-                <span style={{ opacity: 0.55, whiteSpace: "nowrap" }}>{date(doc.updatedAt)}</span>
+                <span style={{ opacity: 0.55, whiteSpace: "nowrap" }}>{date(doc.updatedAt)}{read(doc)}</span>
               </div>
             </div>
           </a>
@@ -288,7 +291,7 @@ function DaisyDaysPanel({ group }: { group: AuthorGroup }) {
                 <p style={{ margin: 0, fontFamily: body, fontWeight: 500, fontSize: "13px", lineHeight: 1.55 }}>{doc.description}</p>
               )}
               <ProgressBar doc={doc} ink={inkc} accent={caps[i % caps.length]} font={body} />
-              <span style={{ fontFamily: body, fontWeight: 700, fontSize: "11.5px", opacity: 0.6 }}>updated {date(doc.updatedAt)}</span>
+              <span style={{ fontFamily: body, fontWeight: 700, fontSize: "11.5px", opacity: 0.6 }}>updated {date(doc.updatedAt)}{read(doc)}</span>
             </div>
           </a>
         ))}
@@ -363,7 +366,7 @@ function EightBitOrbitPanel({ group }: { group: AuthorGroup }) {
                 <ProgressBar doc={doc} ink={ac} accent={ac} font={body} onDark />
               </div>
               <div style={{ marginTop: "12px", fontFamily: mono, fontSize: "10.5px", letterSpacing: "0.06em", color: yellow, textTransform: "uppercase", opacity: 0.85 }}>
-                {doc.title} · {date(doc.updatedAt)}
+                {doc.title} · {date(doc.updatedAt)}{read(doc)}
               </div>
             </a>
           );
@@ -431,7 +434,7 @@ function PinAndPaperPanel({ group }: { group: AuthorGroup }) {
               <ProgressBar doc={doc} ink={ink} accent={red} font={body} />
             </div>
             <div style={{ marginTop: "12px", fontFamily: mono, fontSize: "10.5px", letterSpacing: "0.05em", color: ink, opacity: 0.6 }}>
-              {date(doc.updatedAt)}
+              {date(doc.updatedAt)}{read(doc)}
             </div>
           </a>
         ))}
@@ -493,7 +496,7 @@ function GenericPanel({ group, token }: { group: AuthorGroup; token: StyleToken 
               {doc.description && <p style={{ margin: 0, fontFamily: token.body, fontSize: "13px", lineHeight: 1.55 }}>{doc.description}</p>}
               <ProgressBar doc={doc} ink={token.ink} accent={token.accent} font={token.body} />
               <div style={{ fontFamily: token.body, fontWeight: 700, fontSize: "10.5px", textTransform: "uppercase", letterSpacing: "0.06em", opacity: 0.6, borderTop: `1.5px solid ${token.ink}`, paddingTop: "9px" }}>
-                {doc.title} · {date(doc.updatedAt)}
+                {doc.title} · {date(doc.updatedAt)}{read(doc)}
               </div>
             </div>
           </a>
@@ -526,7 +529,7 @@ function PlainPanel({ group }: { group: AuthorGroup }) {
             <strong style={{ fontSize: "19px" }}>{doc.subject}</strong>
             {doc.description && <span style={{ fontSize: "13px", lineHeight: 1.5, opacity: 0.8 }}>{doc.description}</span>}
             <ProgressBar doc={doc} ink={ink} accent={ink} font="system-ui, sans-serif" />
-            <span style={{ fontSize: "11px", opacity: 0.6 }}>{doc.title} · {date(doc.updatedAt)}</span>
+            <span style={{ fontSize: "11px", opacity: 0.6 }}>{doc.title} · {date(doc.updatedAt)}{read(doc)}</span>
           </a>
         ))}
       </div>
