@@ -11,7 +11,11 @@ import { STYLE_TOKENS } from "./styleTokens";
 // deployment; unset, this is noah's original shelf.
 const SHELF_URL = process.env.SHELF_URL ?? "https://noah-learning-shelf.vercel.app";
 
-export function buildInviteInstaller(rawName: string, style: string): string {
+export function buildInviteInstaller(
+  rawName: string,
+  style: string,
+  ownerToken: string,
+): string {
   const name = rawName.trim().replace(/[^a-zA-Z0-9 '-]/g, "").slice(0, 40) || "Friend";
   const author = name.toLowerCase().split(/\s+/)[0];
   const bandStyle = STYLE_TOKENS.some((b) => b.id === style) ? style : "plain";
@@ -50,7 +54,7 @@ that person's coding agent as they learn. Your job right now:
 
 ──────── file: ~/.claude/skills/learning-shelf/SKILL.md AND ~/.codex/skills/learning-shelf/SKILL.md ────────
 
-${shelfSkill(name, author, bandStyle)}
+${shelfSkill(name, author, bandStyle, ownerToken)}
 
 ──────── file: ~/.claude/skills/learn/SKILL.md AND ~/.codex/skills/learn/SKILL.md ────────
 
@@ -104,7 +108,12 @@ If ${name} says no, just teach normally — still using the \`learn\` skill's
 depth-and-motivation style, just without creating a doc.`;
 }
 
-function shelfSkill(name: string, author: string, bandStyle: string): string {
+function shelfSkill(
+  name: string,
+  author: string,
+  bandStyle: string,
+  ownerToken: string,
+): string {
   const secret = process.env.SHELF_SECRET ?? "MISSING_SECRET";
 
   return `---
@@ -122,13 +131,18 @@ HTML learning doc — one self-contained HTML file that grows as they learn.
 - **Your human is**: \`${name}\` — always publish with \`author=${author}\`.
 - **Your band design is**: \`${bandStyle}\` — always publish with \`authorStyle=${bandStyle}\`.
 
-## The two facts you need
+## The three facts you need
 
 - **Shelf URL**: \`${SHELF_URL}\`
-- **Publish secret**: \`${secret}\`
+- **Publish secret** (shared by the group): \`${secret}\`
+- **${name}'s owner token** (private — proves ${name}'s corner is theirs): \`${ownerToken}\`
 
-The secret goes in the \`x-shelf-secret\` header of every publish. Never put it
-inside an HTML doc, never commit it to a public repo.
+The secret goes in the \`x-shelf-secret\` header and the owner token in the
+\`x-owner-token\` header of every publish, delete, and avatar call. The shelf
+rejects writes to ${name}'s corner without the right owner token — that's
+what stops anyone else on the shelf from touching ${name}'s docs, and it's
+why you must never use it on any author other than \`${author}\`. Never put
+either value inside an HTML doc, never commit them to a public repo.
 
 ## The rules of the shelf
 
@@ -152,6 +166,7 @@ inside an HTML doc, never commit it to a public repo.
 \`\`\`bash
 curl -sS -X POST "${SHELF_URL}/api/publish" \\
   -H "x-shelf-secret: ${secret}" \\
+  -H "x-owner-token: ${ownerToken}" \\
   -F "slug=<kebab-case-stable-id>" \\
   -F "title=<Human Readable Title>" \\
   -F "subject=<what is actually being learned, e.g. Ceramics>" \\
@@ -175,9 +190,24 @@ curl -sS -X POST "${SHELF_URL}/api/publish" \\
   a module is finished, and re-publish. If you're not tracking modules for a
   doc, omit these three.
 - The response is JSON: \`{ ok: true, url: "/d/<slug>" }\`. On error, read the
-  \`error\` field.
+  \`error\` field. A 403 means the slug or author belongs to someone else —
+  never retry with a different author name; pick a different slug instead.
 - Verify after publishing: the directory at \`${SHELF_URL}/\` shows the doc
   under ${name}'s corner with a fresh date.
+
+## Deleting a doc
+
+Only when ${name} explicitly asks to take a doc down — deletion is permanent
+(the local source file survives, so it can be republished later):
+
+\`\`\`bash
+curl -sS -X DELETE "${SHELF_URL}/api/publish?slug=<slug>" \\
+  -H "x-shelf-secret: ${secret}" \\
+  -H "x-owner-token: ${ownerToken}"
+\`\`\`
+
+This only works on ${name}'s own docs — the shelf refuses to delete anyone
+else's, and you must never attempt to.
 
 ## Your polaroid (optional, once)
 
@@ -189,6 +219,7 @@ one, upload it:
 \`\`\`bash
 curl -sS -X POST "${SHELF_URL}/api/avatar" \\
   -H "x-shelf-secret: ${secret}" \\
+  -H "x-owner-token: ${ownerToken}" \\
   -F "author=${author}" \\
   -F "image=@/absolute/path/to/photo.jpg"
 \`\`\`

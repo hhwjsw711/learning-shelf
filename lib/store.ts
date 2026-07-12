@@ -116,6 +116,77 @@ export async function deleteDoc(slug: string): Promise<void> {
   await unlink(join(DATA_DIR, `${slug}.meta.json`)).catch(() => {});
 }
 
+// ── Ownership ────────────────────────────────────────────────────────────
+// Each author has a private owner token, minted with their kit and stored
+// here only as a sha256 hash (authors/<author>.json). Publish, delete, and
+// avatar calls must present the raw token; a mismatch means someone is trying
+// to touch a corner that isn't theirs.
+
+const AUTHOR_DIR = join(process.cwd(), ".data", "authors");
+
+type AuthorRecord = { tokenHash: string; createdAt: string };
+
+export async function getAuthorRecord(
+  author: string,
+): Promise<AuthorRecord | undefined> {
+  if (usingBlob()) {
+    const { head } = await import("@vercel/blob");
+    try {
+      const blob = await head(`authors/${author}.json`);
+      const res = await fetch(blob.url, { cache: "no-store" });
+      return (await res.json()) as AuthorRecord;
+    } catch {
+      return undefined;
+    }
+  }
+
+  try {
+    return JSON.parse(await readFile(join(AUTHOR_DIR, `${author}.json`), "utf-8"));
+  } catch {
+    return undefined;
+  }
+}
+
+export async function claimAuthor(author: string, tokenHash: string): Promise<void> {
+  const record: AuthorRecord = { tokenHash, createdAt: new Date().toISOString() };
+
+  if (usingBlob()) {
+    const { put } = await import("@vercel/blob");
+    await put(`authors/${author}.json`, JSON.stringify(record), {
+      access: "public",
+      contentType: "application/json",
+      addRandomSuffix: false,
+      allowOverwrite: true,
+      cacheControlMaxAge: 0,
+    });
+    return;
+  }
+
+  await mkdir(AUTHOR_DIR, { recursive: true });
+  await writeFile(join(AUTHOR_DIR, `${author}.json`), JSON.stringify(record), "utf-8");
+}
+
+export async function getDocMeta(slug: string): Promise<DocMeta | undefined> {
+  if (usingBlob()) {
+    const { head } = await import("@vercel/blob");
+    try {
+      const blob = await head(`docs/${slug}.meta.json`);
+      const res = await fetch(blob.url, { cache: "no-store" });
+      return (await res.json()) as DocMeta;
+    } catch {
+      return undefined;
+    }
+  }
+
+  try {
+    return JSON.parse(
+      await readFile(join(DATA_DIR, `${slug}.meta.json`), "utf-8"),
+    );
+  } catch {
+    return undefined;
+  }
+}
+
 // ── Avatars ──────────────────────────────────────────────────────────────
 // One optional profile photo per author, rendered as a polaroid on their
 // board section. Stored as avatars/<author>.<ext>; re-uploading replaces it.

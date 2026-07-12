@@ -1,13 +1,16 @@
-// The entire write surface of the shelf: one endpoint, shared-secret auth,
-// upsert-by-slug. Claudes re-POST the whole HTML file on every update.
+// The entire write surface of the shelf: one endpoint, two-layer auth,
+// upsert-by-slug. Agents re-POST the whole HTML file on every update.
+// x-shelf-secret proves group membership; x-owner-token proves this author's
+// corner is yours — so nobody can update or delete someone else's notes.
 //
 //   curl -X POST $SHELF_URL/api/publish \
-//     -H "x-shelf-secret: $SECRET" \
+//     -H "x-shelf-secret: $SECRET" -H "x-owner-token: $MY_TOKEN" \
 //     -F slug=softshell-log -F title="The Softshell Log" \
 //     -F author=noah -F template=sakura-chroma \
 //     -F html=@softshell-log.html
 
-import { deleteDoc, publishDoc } from "@/lib/store";
+import { deleteDoc, getDocMeta, publishDoc } from "@/lib/store";
+import { verifyOwner } from "@/lib/owner";
 
 const SLUG_PATTERN = /^[a-z0-9][a-z0-9-]{0,63}$/;
 const MAX_HTML_BYTES = 5 * 1024 * 1024;
@@ -69,6 +72,21 @@ export async function POST(request: Request): Promise<Response> {
     return json(413, { error: "html exceeds 5MB" });
   }
 
+  // Ownership: the caller must hold this author's owner token, and the slug —
+  // if it already exists — must belong to this author.
+  const owner = await verifyOwner(
+    author.toLowerCase(),
+    request.headers.get("x-owner-token") ?? "",
+  );
+  if (!owner.ok) return json(owner.status, { error: owner.error });
+
+  const existing = await getDocMeta(slug);
+  if (existing && existing.author.toLowerCase() !== author.toLowerCase()) {
+    return json(403, {
+      error: `slug "${slug}" belongs to ${existing.author} — pick a different slug`,
+    });
+  }
+
   const meta = await publishDoc(
     {
       slug, title, subject, description, author, template, authorStyle,
@@ -80,15 +98,28 @@ export async function POST(request: Request): Promise<Response> {
   return json(200, { ok: true, url: `/d/${slug}`, meta });
 }
 
-// Remove a doc. Same shared secret; slug in the query string.
+// Remove a doc. Shared secret + the owner token of the author who owns the
+// slug; slug in the query string.
 export async function DELETE(request: Request): Promise<Response> {
-  if (request.headers.get("x-shelf-secret") !== process.env.SHELF_SECRET) {
+  const secret = process.env.SHELF_SECRET;
+  if (!secret || request.headers.get("x-shelf-secret") !== secret) {
     return json(401, { error: "bad or missing x-shelf-secret header" });
   }
   const slug = new URL(request.url).searchParams.get("slug") ?? "";
   if (!SLUG_PATTERN.test(slug)) {
     return json(400, { error: "slug must match " + String(SLUG_PATTERN) });
   }
+
+  const meta = await getDocMeta(slug);
+  if (!meta) {
+    return json(404, { error: `no doc at slug "${slug}"` });
+  }
+  const owner = await verifyOwner(
+    meta.author.toLowerCase(),
+    request.headers.get("x-owner-token") ?? "",
+  );
+  if (!owner.ok) return json(owner.status, { error: owner.error });
+
   await deleteDoc(slug);
   return json(200, { ok: true, deleted: slug });
 }

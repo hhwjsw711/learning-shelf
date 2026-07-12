@@ -7,6 +7,7 @@
 //     -F author=noah -F image=@me.jpg
 
 import { avatarExtFor, setAvatar } from "@/lib/store";
+import { verifyOwner } from "@/lib/owner";
 
 const AUTHOR_PATTERN = /^[a-z0-9][a-z0-9-]{0,59}$/;
 const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
@@ -43,6 +44,10 @@ export async function POST(request: Request): Promise<Response> {
   if (image.size > MAX_IMAGE_BYTES) {
     return json(413, { error: "image exceeds 2MB — resize it down first" });
   }
+
+  // Only the corner's owner can hang (or replace) its polaroid.
+  const owner = await verifyOwner(author, request.headers.get("x-owner-token") ?? "");
+  if (!owner.ok) return json(owner.status, { error: owner.error });
 
   await setAvatar(author, Buffer.from(await image.arrayBuffer()), image.type);
 

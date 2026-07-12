@@ -1,9 +1,11 @@
-// Mint an invite: a paste-into-Claude installer carrying the three skills
+// Mint an invite: a paste-into-your-agent installer carrying the three skills
 // (shelf contributor + learn + beautiful-html-templates), personalized with
-// the friend's name and band style. Deliberately ungated — the shelf is a
-// friend-group board and the button on the site is the front door.
+// the friend's name, band style, and a freshly minted owner token that makes
+// their corner theirs alone. Gated by the group password.
 
 import { buildInviteInstaller } from "@/lib/invite";
+import { hashOwnerToken, mintOwnerToken } from "@/lib/owner";
+import { claimAuthor, getAuthorRecord, listDocs } from "@/lib/store";
 
 export async function POST(request: Request): Promise<Response> {
   let body: { name?: string; style?: string; password?: string };
@@ -33,9 +35,36 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
+  // One corner per name: minting a kit claims the author name and binds a
+  // fresh owner token to it. A taken name can't be re-minted — otherwise
+  // anyone with the shelf password could grab someone else's corner.
+  const rawName = String(body.name ?? "");
+  const author = rawName.trim().toLowerCase().split(/\s+/)[0].replace(/[^a-z0-9-]/g, "");
+  if (!author) {
+    return new Response(JSON.stringify({ error: "give us a name first" }), {
+      status: 400,
+      headers: { "content-type": "application/json" },
+    });
+  }
+
+  const [record, docs] = await Promise.all([getAuthorRecord(author), listDocs()]);
+  const hasDocs = docs.some((d) => d.author.toLowerCase() === author);
+  if (record || hasDocs) {
+    return new Response(
+      JSON.stringify({
+        error: `"${author}" already has a corner on the shelf — if it's yours, your original kit still works; otherwise pick another name`,
+      }),
+      { status: 409, headers: { "content-type": "application/json" } },
+    );
+  }
+
+  const ownerToken = mintOwnerToken();
+  await claimAuthor(author, hashOwnerToken(ownerToken));
+
   const installer = buildInviteInstaller(
-    String(body.name ?? ""),
+    rawName,
     String(body.style ?? "plain"),
+    ownerToken,
   );
 
   return new Response(JSON.stringify({ installer }), {
