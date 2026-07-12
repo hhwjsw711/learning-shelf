@@ -7,6 +7,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import { listAvatarAuthors, listDocs, type DocMeta } from "@/lib/store";
 import { AuthorPanel, type AuthorGroup } from "@/lib/sections";
+import { LetsLearn } from "./LetsLearn";
 
 export const dynamic = "force-dynamic";
 
@@ -119,6 +120,8 @@ export default async function ShelfPage() {
                 got the password? grab your kit ✂
               </span>
             </a>
+            {/* desktop only: opens Claude Code or Codex with the prompt typed */}
+            <LetsLearn />
           </div>
 
           {groups.length > 0 && (
@@ -217,7 +220,7 @@ function PinnedPage({
       }}
     >
       {/* the author's polaroid, overlapping the paper's top-right corner */}
-      {avatar && <Polaroid src={avatar.src} name={avatar.name} index={index} />}
+      {avatar && <Polaroid src={avatar.src} index={index} />}
       {/* masking tape across the top */}
       <div
         aria-hidden
@@ -369,10 +372,11 @@ function GithubStarSticky() {
   );
 }
 
-// An author's photo as a small polaroid print: white border, deep chin at the
-// bottom carrying a handwritten name, hung over the top-right corner of their
-// paper with a bit of tape. Optional — only authors who upload one get it.
-function Polaroid({ src, name, index }: { src: string; name: string; index: number }) {
+// An author's photo as a small polaroid print: white border with the classic
+// deep chin (left blank — the paper it hangs on already says whose corner
+// this is), hung over the top-right corner with a bit of tape. Optional —
+// only authors who upload one get it.
+function Polaroid({ src, index }: { src: string; index: number }) {
   const lean = index % 2 === 0 ? "4deg" : "-3.5deg";
   return (
     <div
@@ -383,7 +387,7 @@ function Polaroid({ src, name, index }: { src: string; name: string; index: numb
         right: "clamp(10px, 4vw, 42px)",
         transform: `rotate(${lean})`,
         background: "#FDFDFB",
-        padding: "7px 7px 6px",
+        padding: "7px 7px 24px",
         boxShadow: "0 2px 4px rgba(45,42,38,0.28), 4px 8px 18px rgba(45,42,38,0.32)",
         zIndex: 6,
       }}
@@ -397,18 +401,6 @@ function Polaroid({ src, name, index }: { src: string; name: string; index: numb
         height={86}
         style={{ display: "block", width: "86px", height: "86px", objectFit: "cover", filter: "saturate(0.92) contrast(1.02)" }}
       />
-      <div
-        style={{
-          fontFamily: script,
-          fontWeight: 600,
-          fontSize: "17px",
-          color: "#4A4139",
-          textAlign: "center",
-          padding: "3px 0 1px",
-        }}
-      >
-        {name.toLowerCase()}
-      </div>
       {/* tape holding the polaroid to the paper */}
       <div
         style={{
