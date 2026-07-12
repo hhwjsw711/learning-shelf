@@ -9,6 +9,8 @@ import { join } from "node:path";
 export type DocMeta = {
   slug: string;
   title: string;
+  subject: string; // what is actually being learned ("Ceramics", "Next.js internals")
+  description: string; // one or two sentences for the directory card
   author: string;
   template: string; // the template the DOC itself uses (per doc)
   authorStyle: string; // the design language of the author's directory band
@@ -82,9 +84,11 @@ export async function listDocs(): Promise<DocMeta[]> {
     }
   }
 
-  // Tolerate docs published before authorStyle existed.
+  // Tolerate docs published before newer meta fields existed.
   for (const m of metas) {
     if (!m.authorStyle) m.authorStyle = "plain";
+    if (!m.subject) m.subject = m.title;
+    if (!m.description) m.description = "";
   }
 
   return metas.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));

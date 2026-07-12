@@ -38,6 +38,9 @@ export async function POST(request: Request): Promise<Response> {
   // every one of their docs lands in their own visual section. Falls back to a
   // neutral band if omitted or unknown.
   const authorStyle = String(form.get("authorStyle") ?? "plain").slice(0, 60);
+  // What is actually being learned + a sentence for the directory card.
+  const subject = String(form.get("subject") ?? "").slice(0, 80);
+  const description = String(form.get("description") ?? "").slice(0, 280);
 
   const htmlField = form.get("html");
   const html =
@@ -49,6 +52,12 @@ export async function POST(request: Request): Promise<Response> {
   if (!title || !author || !template) {
     return json(400, { error: "title, author and template are all required" });
   }
+  if (!subject || !description) {
+    return json(400, {
+      error:
+        "subject and description are required — say what is being learned and give the directory card one or two sentences",
+    });
+  }
   if (!html.trimStart().toLowerCase().startsWith("<!doctype html")) {
     return json(400, { error: "html must be a complete document (<!doctype html …)" });
   }
@@ -57,7 +66,7 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const meta = await publishDoc(
-    { slug, title, author, template, authorStyle },
+    { slug, title, subject, description, author, template, authorStyle },
     html,
   );
 

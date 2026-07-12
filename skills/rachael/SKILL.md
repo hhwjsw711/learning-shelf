@@ -58,6 +58,10 @@ curl -sS -X POST "https://noah-learning-shelf.vercel.app/api/publish" \
   -F "html=@/absolute/path/to/your-doc.html"
 ```
 
+- `subject` and `description` are what the directory shows — subject is the
+  topic ("Tattooing", "Next.js internals"), description is one or two friendly
+  sentences about what is being learned. Keep the description fresh as the doc
+  evolves.
 - `slug` is permanent — pick once, republish to the same slug to update in place.
 - `author` and `authorStyle` are fixed for Rachael (above); `template` is per doc.
 - The response is JSON: `{ ok: true, url: "/d/<slug>" }`. On error, read the

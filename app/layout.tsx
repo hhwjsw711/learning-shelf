@@ -20,7 +20,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           rel="stylesheet"
         />
       </head>
-      <body style={{ margin: 0, background: "#F1E6CB" }}>{children}</body>
+      {/* The wall: a quiet warm neutral so every panel's own palette reads
+          as intentional against it rather than colliding with a sibling. */}
+      <body style={{ margin: 0, background: "#EDE8DE" }}>{children}</body>
     </html>
   );
 }

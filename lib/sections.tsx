@@ -1,10 +1,12 @@
-// Each author gets a full-width band on the directory, rendered in the visual
-// language of one beautiful-html-templates design. The band a person receives
-// is baked into their contributor skill (sent as `authorStyle` on publish), so
-// every doc they add lands in their own aesthetic. The directory becomes a
-// stacked zine: one spread per contributor.
+// Each contributor gets a contained PANEL on the directory — a framed piece
+// hung on the shelf's neutral wall, rendered in the visual language of one
+// beautiful-html-templates design (baked into their skill as authorStyle).
+// The wall provides unity; the frames provide personality.
+//
+// Card grammar, shared by every style: SUBJECT is the headline (what is
+// actually being learned), description underneath, then a small meta line
+// (doc title · template · updated).
 
-import type { ReactNode } from "react";
 import type { DocMeta } from "./store";
 
 export type AuthorGroup = {
@@ -13,26 +15,26 @@ export type AuthorGroup = {
   docs: DocMeta[];
 };
 
-export function AuthorBand({ group }: { group: AuthorGroup }) {
+export function AuthorPanel({ group }: { group: AuthorGroup }) {
   switch (group.authorStyle) {
     case "cobalt-grid":
-      return <CobaltGridBand group={group} />;
+      return <CobaltGridPanel group={group} />;
     case "block-frame":
-      return <BlockFrameBand group={group} />;
+      return <BlockFramePanel group={group} />;
     case "daisy-days":
-      return <DaisyDaysBand group={group} />;
+      return <DaisyDaysPanel group={group} />;
     default:
-      return <PlainBand group={group} />;
+      return <PlainPanel group={group} />;
   }
 }
 
 const date = (iso: string) => iso.slice(0, 10);
 
 // ─────────────────────────────────────────────────────────────────────────
-// COBALT GRID — cream paper, one strict cobalt accent, graph-paper canvas,
-// Newsreader serif + DM Mono, pixel stair-blocks, hairline ledger rows.
+// COBALT GRID — cream paper, one strict cobalt accent, faint graph-paper,
+// Newsreader serif + DM Mono, hairline ledger rows.
 // ─────────────────────────────────────────────────────────────────────────
-function CobaltGridBand({ group }: { group: AuthorGroup }) {
+function CobaltGridPanel({ group }: { group: AuthorGroup }) {
   const paper = "#F0EBDE";
   const ink = "#1F2BE0";
   const serif = "'Newsreader', Georgia, serif";
@@ -41,78 +43,64 @@ function CobaltGridBand({ group }: { group: AuthorGroup }) {
 
   return (
     <section
+      id={group.author.toLowerCase()}
       style={{
         background: paper,
-        backgroundImage: `linear-gradient(${ink}1A 1px, transparent 1px), linear-gradient(90deg, ${ink}1A 1px, transparent 1px)`,
-        backgroundSize: "32px 32px",
-        padding: "48px clamp(28px, 6vw, 96px) 56px",
-        position: "relative",
-        overflow: "hidden",
-        borderTop: `1.5px solid ${ink}`,
-        borderBottom: `1.5px solid ${ink}`,
+        backgroundImage: `linear-gradient(${ink}14 1px, transparent 1px), linear-gradient(90deg, ${ink}14 1px, transparent 1px)`,
+        backgroundSize: "30px 30px",
+        border: `1.5px solid ${ink}`,
+        padding: "34px clamp(24px, 4vw, 48px) 38px",
       }}
     >
-      {/* pixel stair-block decoration, right edge */}
-      <svg
-        aria-hidden
-        viewBox="0 0 120 200"
-        style={{ position: "absolute", top: 0, right: 0, height: "100%", width: "clamp(90px,14vw,180px)", opacity: 0.5 }}
-      >
-        {[0, 1, 2, 3, 4].map((i) => (
-          <rect key={i} x={i * 24} y={i * 22} width="22" height={200 - i * 22} fill="none" stroke={ink} strokeWidth="1.5">
-            {[...Array(6)].map((_, j) => (
-              <line key={j} x1={i * 24 + 3 + j * 3} y1={i * 22} x2={i * 24 + 3 + j * 3} y2="200" stroke={ink} strokeWidth="0.6" />
-            ))}
-          </rect>
-        ))}
-      </svg>
-
-      <div style={{ position: "relative", zIndex: 2, maxWidth: "900px" }}>
-        <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: "24px", borderBottom: `1.5px solid ${ink}`, paddingBottom: "12px" }}>
-          <h2 style={{ margin: 0, fontFamily: serif, fontWeight: 500, fontStyle: "italic", fontSize: "clamp(40px,5.5vw,72px)", lineHeight: 0.95, color: ink }}>
-            {group.author}
-          </h2>
-          <span style={{ fontFamily: mono, fontSize: "12px", letterSpacing: "0.1em", color: ink, textTransform: "uppercase" }}>
-            Index · {String(group.docs.length).padStart(2, "0")}
-          </span>
-        </div>
-
-        <div style={{ marginTop: "10px" }}>
-          {group.docs.map((doc, i) => (
-            <a
-              key={doc.slug}
-              href={`/d/${doc.slug}`}
-              style={{
-                display: "grid",
-                gridTemplateColumns: "48px 1fr auto",
-                gap: "20px",
-                alignItems: "baseline",
-                padding: "16px 0",
-                borderBottom: `1px solid ${ink}2E`,
-                textDecoration: "none",
-                color: ink,
-              }}
-            >
-              <span style={{ fontFamily: mono, fontSize: "13px" }}>{String(i + 1).padStart(2, "0")}</span>
-              <span style={{ fontFamily: serif, fontWeight: 500, fontSize: "clamp(20px,2.4vw,30px)", lineHeight: 1.1 }}>{doc.title}</span>
-              <span style={{ fontFamily: mono, fontSize: "11.5px", letterSpacing: "0.04em", textAlign: "right", whiteSpace: "nowrap" }}>
-                {doc.template}
-                <br />
-                {date(doc.updatedAt)}
-              </span>
-            </a>
-          ))}
-        </div>
+      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: "20px", borderBottom: `1.5px solid ${ink}`, paddingBottom: "10px" }}>
+        <h2 style={{ margin: 0, fontFamily: serif, fontWeight: 500, fontStyle: "italic", fontSize: "clamp(32px,4vw,46px)", lineHeight: 0.95, color: ink }}>
+          {group.author}
+        </h2>
+        <span style={{ fontFamily: mono, fontSize: "11px", letterSpacing: "0.1em", color: ink, textTransform: "uppercase" }}>
+          index · {String(group.docs.length).padStart(2, "0")}
+        </span>
       </div>
+
+      {group.docs.map((doc, i) => (
+        <a
+          key={doc.slug}
+          href={`/d/${doc.slug}`}
+          style={{
+            display: "grid",
+            gridTemplateColumns: "36px 1fr auto",
+            gap: "18px",
+            alignItems: "start",
+            padding: "18px 0",
+            borderBottom: i === group.docs.length - 1 ? "none" : `1px solid ${ink}2E`,
+            textDecoration: "none",
+            color: ink,
+          }}
+        >
+          <span style={{ fontFamily: mono, fontSize: "12px", paddingTop: "8px" }}>{String(i + 1).padStart(2, "0")}</span>
+          <span>
+            <span style={{ display: "block", fontFamily: serif, fontWeight: 500, fontSize: "clamp(22px,2.4vw,30px)", lineHeight: 1.05 }}>{doc.subject}</span>
+            {doc.description && (
+              <span style={{ display: "block", marginTop: "6px", fontFamily: sans, fontSize: "14px", lineHeight: 1.5, color: "#3a3a3a", maxWidth: "58ch" }}>
+                {doc.description}
+              </span>
+            )}
+          </span>
+          <span style={{ fontFamily: mono, fontSize: "11px", letterSpacing: "0.04em", textAlign: "right", whiteSpace: "nowrap", paddingTop: "8px", opacity: 0.85 }}>
+            {doc.title}
+            <br />
+            {doc.template} · {date(doc.updatedAt)}
+          </span>
+        </a>
+      ))}
     </section>
   );
 }
 
 // ─────────────────────────────────────────────────────────────────────────
 // BLOCKFRAME — off-white, neon pastel blocks, heavy black borders, hard
-// offset shadows, Space Grotesk heavy display + Inter body. Poster energy.
+// offset shadows, Space Grotesk heavy display + Inter body.
 // ─────────────────────────────────────────────────────────────────────────
-function BlockFrameBand({ group }: { group: AuthorGroup }) {
+function BlockFramePanel({ group }: { group: AuthorGroup }) {
   const black = "#000000";
   const offwhite = "#FFFDF5";
   const fills = ["#FE90E8", "#C0F7FE", "#99E885", "#F7CB46"];
@@ -120,29 +108,35 @@ function BlockFrameBand({ group }: { group: AuthorGroup }) {
   const body = "'Inter', system-ui, sans-serif";
 
   return (
-    <section style={{ background: offwhite, padding: "52px clamp(28px, 6vw, 96px) 60px", borderTop: `4px solid ${black}`, borderBottom: `4px solid ${black}` }}>
-      <div style={{ display: "flex", alignItems: "center", gap: "18px", flexWrap: "wrap", marginBottom: "30px" }}>
-        <span style={{ display: "inline-block", background: fills[0], border: `3px solid ${black}`, boxShadow: `4px 4px 0 ${black}`, padding: "5px 14px", fontFamily: body, fontWeight: 700, fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.1em" }}>
+    <section
+      id={group.author.toLowerCase()}
+      style={{ background: offwhite, border: `4px solid ${black}`, boxShadow: `8px 8px 0 ${black}`, padding: "30px clamp(24px, 4vw, 44px) 36px" }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: "14px", flexWrap: "wrap", marginBottom: "24px" }}>
+        <span style={{ display: "inline-block", background: fills[0], border: `3px solid ${black}`, boxShadow: `4px 4px 0 ${black}`, padding: "4px 12px", fontFamily: body, fontWeight: 700, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.1em" }}>
           Contributor
         </span>
-        <h2 style={{ margin: 0, fontFamily: display, fontWeight: 700, fontSize: "clamp(44px,6vw,80px)", lineHeight: 0.9, letterSpacing: "-0.02em", color: black, textTransform: "uppercase" }}>
+        <h2 style={{ margin: 0, fontFamily: display, fontWeight: 700, fontSize: "clamp(32px,4vw,48px)", lineHeight: 0.9, letterSpacing: "-0.02em", color: black, textTransform: "uppercase" }}>
           {group.author}
         </h2>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "26px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "22px" }}>
         {group.docs.map((doc, i) => (
           <a
             key={doc.slug}
             href={`/d/${doc.slug}`}
-            style={{ display: "flex", flexDirection: "column", background: "#fff", border: `4px solid ${black}`, boxShadow: `8px 8px 0 ${black}`, textDecoration: "none", color: black }}
+            style={{ display: "flex", flexDirection: "column", background: "#fff", border: `3px solid ${black}`, boxShadow: `5px 5px 0 ${black}`, textDecoration: "none", color: black }}
           >
-            <div style={{ height: "20px", background: fills[i % fills.length], borderBottom: `4px solid ${black}` }} />
-            <div style={{ padding: "20px", display: "grid", gap: "14px" }}>
-              <h3 style={{ margin: 0, fontFamily: display, fontWeight: 700, fontSize: "26px", lineHeight: 0.98, letterSpacing: "-0.01em", textTransform: "uppercase" }}>{doc.title}</h3>
-              <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", fontFamily: body, fontWeight: 700, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.08em", borderTop: `2px solid ${black}`, paddingTop: "10px" }}>
-                <span>{doc.template}</span>
-                <span style={{ opacity: 0.6 }}>{date(doc.updatedAt)}</span>
+            <div style={{ height: "14px", background: fills[i % fills.length], borderBottom: `3px solid ${black}` }} />
+            <div style={{ padding: "18px", display: "grid", gap: "10px", alignContent: "start" }}>
+              <h3 style={{ margin: 0, fontFamily: display, fontWeight: 700, fontSize: "24px", lineHeight: 0.98, letterSpacing: "-0.01em", textTransform: "uppercase" }}>{doc.subject}</h3>
+              {doc.description && (
+                <p style={{ margin: 0, fontFamily: body, fontSize: "13px", lineHeight: 1.55, color: "#222" }}>{doc.description}</p>
+              )}
+              <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", fontFamily: body, fontWeight: 700, fontSize: "10.5px", textTransform: "uppercase", letterSpacing: "0.07em", borderTop: `2px solid ${black}`, paddingTop: "9px" }}>
+                <span>{doc.title}</span>
+                <span style={{ opacity: 0.55, whiteSpace: "nowrap" }}>{date(doc.updatedAt)}</span>
               </div>
             </div>
           </a>
@@ -153,10 +147,10 @@ function BlockFrameBand({ group }: { group: AuthorGroup }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────
-// DAISY DAYS — cream, pastel rainbow, ink 3px outlines, chunky 6px shadows,
+// DAISY DAYS — cream, pastel rainbow, ink 3px outlines, chunky shadows,
 // rounded corners, Fredoka display + Quicksand body, hand-drawn daisies.
 // ─────────────────────────────────────────────────────────────────────────
-function DaisyDaysBand({ group }: { group: AuthorGroup }) {
+function DaisyDaysPanel({ group }: { group: AuthorGroup }) {
   const cream = "#F5F0E6";
   const inkc = "#2D2D2D";
   const caps = ["#A8E6CF", "#D4A5E8", "#FFCBA4", "#A8D8F0", "#F7C8D4", "#FDE68A"];
@@ -164,26 +158,31 @@ function DaisyDaysBand({ group }: { group: AuthorGroup }) {
   const body = "'Quicksand', system-ui, sans-serif";
 
   return (
-    <section style={{ background: cream, padding: "50px clamp(28px, 6vw, 96px) 58px", borderTop: `3px solid ${inkc}`, borderBottom: `3px solid ${inkc}`, position: "relative", overflow: "hidden" }}>
-      <Daisy style={{ position: "absolute", top: "24px", right: "40px" }} color="#F7C8D4" ink={inkc} />
-      <Daisy style={{ position: "absolute", bottom: "26px", right: "120px" }} color="#FDE68A" ink={inkc} size={38} />
+    <section
+      id={group.author.toLowerCase()}
+      style={{ background: cream, border: `3px solid ${inkc}`, borderRadius: "22px", boxShadow: `6px 6px 0 ${inkc}`, padding: "30px clamp(24px, 4vw, 44px) 36px", position: "relative", overflow: "hidden" }}
+    >
+      <Daisy style={{ position: "absolute", top: "18px", right: "26px" }} color="#F7C8D4" ink={inkc} />
 
-      <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "28px", position: "relative", zIndex: 2 }}>
-        <Daisy color="#A8D8F0" ink={inkc} size={44} />
-        <h2 style={{ margin: 0, fontFamily: display, fontWeight: 500, fontSize: "clamp(40px,5.5vw,72px)", lineHeight: 1, color: inkc }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "24px" }}>
+        <Daisy color="#A8D8F0" ink={inkc} size={38} />
+        <h2 style={{ margin: 0, fontFamily: display, fontWeight: 500, fontSize: "clamp(32px,4vw,46px)", lineHeight: 1, color: inkc }}>
           {group.author}
         </h2>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "24px", position: "relative", zIndex: 2 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "22px" }}>
         {group.docs.map((doc, i) => (
           <a key={doc.slug} href={`/d/${doc.slug}`} style={{ textDecoration: "none", color: inkc }}>
-            <div style={{ background: caps[i % caps.length], border: `3px solid ${inkc}`, borderBottom: "none", borderRadius: "18px 18px 0 0", padding: "10px 18px", fontFamily: body, fontWeight: 700, fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-              {doc.template}
+            <div style={{ background: caps[i % caps.length], border: `3px solid ${inkc}`, borderBottom: "none", borderRadius: "16px 16px 0 0", padding: "8px 16px", fontFamily: body, fontWeight: 700, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+              {doc.title}
             </div>
-            <div style={{ background: "#fff", border: `3px solid ${inkc}`, borderRadius: "0 0 18px 18px", boxShadow: `6px 6px 0 ${inkc}`, padding: "18px", display: "grid", gap: "12px" }}>
-              <h3 style={{ margin: 0, fontFamily: display, fontWeight: 500, fontSize: "24px", lineHeight: 1.02 }}>{doc.title}</h3>
-              <span style={{ fontFamily: body, fontWeight: 600, fontSize: "12.5px", opacity: 0.65 }}>updated {date(doc.updatedAt)}</span>
+            <div style={{ background: "#fff", border: `3px solid ${inkc}`, borderRadius: "0 0 16px 16px", boxShadow: `5px 5px 0 ${inkc}`, padding: "16px", display: "grid", gap: "10px", alignContent: "start" }}>
+              <h3 style={{ margin: 0, fontFamily: display, fontWeight: 500, fontSize: "23px", lineHeight: 1.02 }}>{doc.subject}</h3>
+              {doc.description && (
+                <p style={{ margin: 0, fontFamily: body, fontWeight: 500, fontSize: "13px", lineHeight: 1.55 }}>{doc.description}</p>
+              )}
+              <span style={{ fontFamily: body, fontWeight: 700, fontSize: "11.5px", opacity: 0.6 }}>updated {date(doc.updatedAt)}</span>
             </div>
           </a>
         ))}
@@ -206,42 +205,20 @@ function Daisy({ color, ink, size = 30, style }: { color: string; ink: string; s
 // ─────────────────────────────────────────────────────────────────────────
 // PLAIN — neutral fallback for authors whose style is unknown.
 // ─────────────────────────────────────────────────────────────────────────
-function PlainBand({ group }: { group: AuthorGroup }) {
-  const ink = "#3A2516";
+function PlainPanel({ group }: { group: AuthorGroup }) {
+  const ink = "#2a2a2a";
   return (
-    <section style={{ background: "#F1E6CB", padding: "44px clamp(28px, 6vw, 96px) 52px", borderTop: `1.5px solid ${ink}`, borderBottom: `1.5px solid ${ink}` }}>
-      <h2 style={{ margin: "0 0 20px", fontFamily: "system-ui, sans-serif", fontWeight: 800, fontSize: "clamp(32px,4vw,52px)", color: ink }}>{group.author}</h2>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px,1fr))", gap: "18px" }}>
+    <section id={group.author.toLowerCase()} style={{ background: "#fff", border: `1.5px solid ${ink}`, padding: "30px clamp(24px,4vw,44px) 34px" }}>
+      <h2 style={{ margin: "0 0 18px", fontFamily: "system-ui, sans-serif", fontWeight: 700, fontSize: "clamp(28px,3.5vw,40px)", color: ink }}>{group.author}</h2>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(250px,1fr))", gap: "16px" }}>
         {group.docs.map((doc) => (
-          <a key={doc.slug} href={`/d/${doc.slug}`} style={{ border: `1.5px solid ${ink}`, padding: "16px", textDecoration: "none", color: ink, display: "grid", gap: "8px" }}>
-            <strong style={{ fontSize: "20px" }}>{doc.title}</strong>
-            <span style={{ fontSize: "12px", opacity: 0.7 }}>{doc.template} · {date(doc.updatedAt)}</span>
+          <a key={doc.slug} href={`/d/${doc.slug}`} style={{ border: `1.5px solid ${ink}`, padding: "16px", textDecoration: "none", color: ink, display: "grid", gap: "8px", alignContent: "start" }}>
+            <strong style={{ fontSize: "19px" }}>{doc.subject}</strong>
+            {doc.description && <span style={{ fontSize: "13px", lineHeight: 1.5, opacity: 0.8 }}>{doc.description}</span>}
+            <span style={{ fontSize: "11px", opacity: 0.6 }}>{doc.title} · {date(doc.updatedAt)}</span>
           </a>
         ))}
       </div>
     </section>
-  );
-}
-
-export function GlobalHeader({ count }: { count: number }): ReactNode {
-  const ink = "#111";
-  return (
-    <header style={{ background: "#fff", borderBottom: `3px solid ${ink}`, padding: "40px clamp(28px, 6vw, 96px) 30px" }}>
-      <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: "20px", flexWrap: "wrap" }}>
-        <div>
-          <h1 style={{ margin: 0, fontFamily: "'Space Grotesk', system-ui, sans-serif", fontWeight: 700, fontSize: "clamp(44px,7vw,88px)", lineHeight: 0.9, letterSpacing: "-0.03em", textTransform: "uppercase", color: ink }}>
-            The Shelf
-          </h1>
-          <p style={{ margin: "12px 0 0", fontFamily: "'Inter', system-ui, sans-serif", fontSize: "16px", maxWidth: "56ch", color: "#333" }}>
-            A shared directory of living learning docs. Each contributor keeps a
-            band below in their own template&apos;s aesthetic; each card is a
-            single HTML file their Claude republishes as they learn.
-          </p>
-        </div>
-        <span style={{ fontFamily: "'DM Mono', ui-monospace, monospace", fontSize: "13px", letterSpacing: "0.06em", color: "#555", whiteSpace: "nowrap" }}>
-          {count} doc{count === 1 ? "" : "s"}
-        </span>
-      </div>
-    </header>
   );
 }
