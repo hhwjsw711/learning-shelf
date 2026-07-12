@@ -5,14 +5,16 @@
 // optional polaroid photo can ride along with the claim.
 
 import { buildInviteInstaller } from "@/lib/invite";
-import { hashOwnerToken, mintOwnerToken } from "@/lib/owner";
+import { hashOwnerToken, mintOwnerToken, ownerCookieHeader } from "@/lib/owner";
 import {
   avatarExtFor,
   claimAuthor,
   getAuthorRecord,
   listDocs,
+  saveAuthorProfile,
   setAvatar,
 } from "@/lib/store";
+import { STYLE_TOKENS } from "@/lib/styleTokens";
 
 const MAX_PHOTO_BYTES = 50 * 1024 * 1024;
 
@@ -66,17 +68,27 @@ export async function POST(request: Request): Promise<Response> {
   const ownerToken = mintOwnerToken();
   await claimAuthor(author, hashOwnerToken(ownerToken));
 
+  // On the board immediately — an empty "just joined" corner in their chosen
+  // design, no first doc (or even kit install) required.
+  const rawStyle = String(form.get("style") ?? "plain");
+  const style = STYLE_TOKENS.some((s) => s.id === rawStyle) ? rawStyle : "plain";
+  await saveAuthorProfile(author, { name: rawName.trim() || author, style });
+
   if (photo instanceof File && photo.size > 0) {
     await setAvatar(author, Buffer.from(await photo.arrayBuffer()), photo.type);
   }
 
-  const installer = buildInviteInstaller(
-    rawName,
-    String(form.get("style") ?? "plain"),
-    ownerToken,
-  );
+  const installer = buildInviteInstaller(rawName, style, ownerToken);
 
-  return json(200, { installer });
+  // The minting browser becomes this member's browser: the cookie unlocks
+  // their owner controls on the board (add / delete lessons, leave).
+  return new Response(JSON.stringify({ installer, author }), {
+    status: 200,
+    headers: {
+      "content-type": "application/json",
+      "set-cookie": ownerCookieHeader(author, ownerToken),
+    },
+  });
 }
 
 function json(status: number, body: unknown): Response {

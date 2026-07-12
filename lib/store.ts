@@ -176,6 +176,30 @@ async function writeAuthorRecord(author: string, record: AuthorRecord): Promise<
   await writeFile(join(AUTHOR_DIR, `${author}.json`), JSON.stringify(record), "utf-8");
 }
 
+export async function deleteAuthorRecord(author: string): Promise<void> {
+  if (usingBlob()) {
+    const { del } = await import("@vercel/blob");
+    await del([`authors/${author}.json`]).catch(() => {});
+    return;
+  }
+  const { unlink } = await import("node:fs/promises");
+  await unlink(join(AUTHOR_DIR, `${author}.json`)).catch(() => {});
+}
+
+export async function deleteAvatar(author: string): Promise<void> {
+  if (usingBlob()) {
+    const { del } = await import("@vercel/blob");
+    await del(
+      Object.values(AVATAR_EXTS).map((e) => `avatars/${author}.${e}`),
+    ).catch(() => {});
+    return;
+  }
+  const { unlink } = await import("node:fs/promises");
+  for (const e of Object.values(AVATAR_EXTS)) {
+    await unlink(join(AVATAR_DIR, `${author}.${e}`)).catch(() => {});
+  }
+}
+
 // Merge join-time profile fields into the author's record.
 export async function saveAuthorProfile(
   author: string,

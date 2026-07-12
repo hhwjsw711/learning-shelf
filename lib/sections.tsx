@@ -105,9 +105,12 @@ function ProgressBar({
   const pct = Math.max(0, Math.min(100, Math.round((doc.modulesDone / doc.modulesTotal) * 100)));
   const trackBg = onDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.06)";
   return (
-    <div style={{ display: "grid", gap: "5px", marginTop: "2px" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", fontFamily: font, fontSize: "10.5px", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: ink, opacity: 0.85 }}>
-        <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+    // minWidth 0 at every level: the nowrap label must ellipsize instead of
+    // widening the card's min-content past its grid track (content would
+    // otherwise paint outside the card in every panel style)
+    <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: "5px", marginTop: "2px", minWidth: 0 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", minWidth: 0, fontFamily: font, fontSize: "10.5px", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: ink, opacity: 0.85 }}>
+        <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>
           {doc.currentModule ? `on: ${doc.currentModule}` : "progress"}
         </span>
         <span style={{ whiteSpace: "nowrap" }}>{doc.modulesDone} / {doc.modulesTotal}</span>

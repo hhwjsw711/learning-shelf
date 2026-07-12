@@ -5,9 +5,12 @@
 // panel styles stop being a clash and become the point: it's a pinboard.
 
 import type { CSSProperties, ReactNode } from "react";
+import { cookies } from "next/headers";
 import { listAvatarAuthors, listDocs, listJoinedAuthors, type DocMeta } from "@/lib/store";
+import { OWNER_COOKIE } from "@/lib/owner";
 import { AuthorPanel, type AuthorGroup } from "@/lib/sections";
 import { LetsLearn } from "./LetsLearn";
+import { OwnerControls } from "./OwnerControls";
 
 export const dynamic = "force-dynamic";
 
@@ -39,6 +42,12 @@ export default async function ShelfPage() {
     listAvatarAuthors(),
     listJoinedAuthors(),
   ]);
+  // Whose browser is this? The owner cookie (set when their kit was minted)
+  // unlocks the controls strip on that member's own paper.
+  const cookieValue = (await cookies()).get(OWNER_COOKIE)?.value ?? "";
+  const viewer = cookieValue.includes(".")
+    ? cookieValue.slice(0, cookieValue.indexOf("."))
+    : null;
   const groups = groupByAuthor(docs);
   // Members who announced themselves but haven't published yet get an empty
   // corner at the end of the board, already wearing their chosen design.
@@ -178,6 +187,12 @@ export default async function ShelfPage() {
               }
             >
               <AuthorPanel group={group} />
+              {viewer === group.author.toLowerCase() && (
+                <OwnerControls
+                  author={group.author.toLowerCase()}
+                  lessons={group.docs.map((d) => ({ slug: d.slug, subject: d.subject }))}
+                />
+              )}
             </PinnedPage>
           ))}
           {/* only when the board is genuinely empty — otherwise the header's

@@ -10,7 +10,7 @@
 //     -F html=@softshell-log.html
 
 import { deleteDoc, getDocMeta, publishDoc } from "@/lib/store";
-import { verifyOwner } from "@/lib/owner";
+import { ownerTokenFrom, parseOwnerCookie, verifyOwner } from "@/lib/owner";
 
 const SLUG_PATTERN = /^[a-z0-9][a-z0-9-]{0,63}$/;
 const MAX_HTML_BYTES = 5 * 1024 * 1024;
@@ -98,11 +98,14 @@ export async function POST(request: Request): Promise<Response> {
   return json(200, { ok: true, url: `/d/${slug}`, meta });
 }
 
-// Remove a doc. Shared secret + the owner token of the author who owns the
-// slug; slug in the query string.
+// Remove a doc. Two ways in: agents send shared secret + owner token headers;
+// a member's own browser sends its owner cookie (which proves membership AND
+// ownership in one, so no secret needed). Slug in the query string.
 export async function DELETE(request: Request): Promise<Response> {
   const secret = process.env.SHELF_SECRET;
-  if (!secret || request.headers.get("x-shelf-secret") !== secret) {
+  const hasSecret = Boolean(secret) && request.headers.get("x-shelf-secret") === secret;
+  const hasCookie = Boolean(parseOwnerCookie(request));
+  if (!hasSecret && !hasCookie) {
     return json(401, { error: "bad or missing x-shelf-secret header" });
   }
   const slug = new URL(request.url).searchParams.get("slug") ?? "";
@@ -114,10 +117,8 @@ export async function DELETE(request: Request): Promise<Response> {
   if (!meta) {
     return json(404, { error: `no doc at slug "${slug}"` });
   }
-  const owner = await verifyOwner(
-    meta.author.toLowerCase(),
-    request.headers.get("x-owner-token") ?? "",
-  );
+  const docAuthor = meta.author.toLowerCase();
+  const owner = await verifyOwner(docAuthor, ownerTokenFrom(request, docAuthor));
   if (!owner.ok) return json(owner.status, { error: owner.error });
 
   await deleteDoc(slug);

@@ -5,6 +5,40 @@
 import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import { claimAuthor, getAuthorRecord } from "./store";
 
+// The member cookie: set when a kit is minted (or via /api/session), so the
+// browser that claimed a corner gets owner controls on the site. Value is
+// "<author>.<raw token>", httpOnly — server routes read it, page JS never can.
+export const OWNER_COOKIE = "shelf_owner";
+
+export function parseOwnerCookie(
+  request: Request,
+): { author: string; token: string } | null {
+  const header = request.headers.get("cookie") ?? "";
+  const match = header.match(new RegExp(`(?:^|;\\s*)${OWNER_COOKIE}=([^;]+)`));
+  if (!match) return null;
+  const value = decodeURIComponent(match[1]);
+  const dot = value.indexOf(".");
+  if (dot <= 0) return null;
+  return { author: value.slice(0, dot), token: value.slice(dot + 1) };
+}
+
+export function ownerCookieHeader(author: string, token: string): string {
+  return `${OWNER_COOKIE}=${encodeURIComponent(`${author}.${token}`)}; Path=/; Max-Age=31536000; SameSite=Lax; Secure; HttpOnly`;
+}
+
+export function clearOwnerCookieHeader(): string {
+  return `${OWNER_COOKIE}=; Path=/; Max-Age=0; SameSite=Lax; Secure; HttpOnly`;
+}
+
+// Token for a given author from either the x-owner-token header or the
+// member cookie (cookie only counts if it names the same author).
+export function ownerTokenFrom(request: Request, author: string): string {
+  const header = request.headers.get("x-owner-token");
+  if (header) return header;
+  const cookie = parseOwnerCookie(request);
+  return cookie && cookie.author === author ? cookie.token : "";
+}
+
 export function mintOwnerToken(): string {
   return randomBytes(16).toString("hex");
 }
