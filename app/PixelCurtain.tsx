@@ -49,8 +49,25 @@ export function PixelCurtain() {
       );
     }
 
+    // Back button after the wipe: the browser restores this page from the
+    // back/forward cache frozen mid-cover — a full screen of tiles that
+    // nothing will ever remove (the curtain's callback never resolves by
+    // design). On a bfcache restore, fade any leftover curtain away.
+    function onPageShow(e: PageTransitionEvent) {
+      if (!e.persisted) return;
+      document.querySelectorAll<HTMLElement>(".motion-curtains").forEach((c) => {
+        c.style.transition = "opacity 250ms ease";
+        c.style.opacity = "0";
+        setTimeout(() => c.remove(), 300);
+      });
+    }
+
     document.addEventListener("click", onClick, true);
-    return () => document.removeEventListener("click", onClick, true);
+    window.addEventListener("pageshow", onPageShow);
+    return () => {
+      document.removeEventListener("click", onClick, true);
+      window.removeEventListener("pageshow", onPageShow);
+    };
   }, []);
 
   // curtain tiles wear the clicked author's color (set above per click)
