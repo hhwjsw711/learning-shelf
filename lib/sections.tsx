@@ -8,6 +8,7 @@
 // (doc title · template · updated).
 
 import type { DocMeta } from "./store";
+import { DepthTag } from "@/app/BoardBits";
 import { TOKENS_BY_ID, type StyleToken } from "./styleTokens";
 
 export type AuthorGroup = {
@@ -182,7 +183,7 @@ function CobaltGridPanel({ group }: { group: AuthorGroup }) {
         >
           <span style={{ fontFamily: mono, fontSize: "12px", paddingTop: "8px" }}>{String(i + 1).padStart(2, "0")}</span>
           <span>
-            <span style={{ display: "block", fontFamily: serif, fontWeight: 500, fontSize: "clamp(22px,2.4vw,30px)", lineHeight: 1.05 }}>{doc.subject}</span>
+            <span style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap", fontFamily: serif, fontWeight: 500, fontSize: "clamp(22px,2.4vw,30px)", lineHeight: 1.05 }}>{doc.subject} <DepthTag doc={doc} tilt={i} /></span>
             {doc.description && (
               <span style={{ display: "block", marginTop: "6px", fontFamily: sans, fontSize: "14px", lineHeight: 1.5, color: "#3a3a3a", maxWidth: "58ch" }}>
                 {doc.description}
@@ -237,7 +238,7 @@ function BlockFramePanel({ group }: { group: AuthorGroup }) {
           >
             <div style={{ height: "14px", background: fills[i % fills.length], borderBottom: `3px solid ${black}` }} />
             <div style={{ padding: "18px", display: "grid", gap: "10px", alignContent: "start" }}>
-              <h3 style={{ margin: 0, fontFamily: display, fontWeight: 700, fontSize: "24px", lineHeight: 0.98, letterSpacing: "-0.01em", textTransform: "uppercase" }}>{doc.subject}</h3>
+              <h3 style={{ margin: 0, display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap", fontFamily: display, fontWeight: 700, fontSize: "24px", lineHeight: 0.98, letterSpacing: "-0.01em", textTransform: "uppercase" }}>{doc.subject} <DepthTag doc={doc} tilt={i} /></h3>
               {doc.description && (
                 <p style={{ margin: 0, fontFamily: body, fontSize: "13px", lineHeight: 1.55, color: "#222" }}>{doc.description}</p>
               )}
@@ -286,7 +287,7 @@ function DaisyDaysPanel({ group }: { group: AuthorGroup }) {
               {doc.title}
             </div>
             <div style={{ background: "#fff", border: `3px solid ${inkc}`, borderRadius: "0 0 16px 16px", boxShadow: `5px 5px 0 ${inkc}`, padding: "16px", display: "grid", gap: "10px", alignContent: "start" }}>
-              <h3 style={{ margin: 0, fontFamily: display, fontWeight: 500, fontSize: "23px", lineHeight: 1.02 }}>{doc.subject}</h3>
+              <h3 style={{ margin: 0, display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap", fontFamily: display, fontWeight: 500, fontSize: "23px", lineHeight: 1.02 }}>{doc.subject} <DepthTag doc={doc} tilt={i} /></h3>
               {doc.description && (
                 <p style={{ margin: 0, fontFamily: body, fontWeight: 500, fontSize: "13px", lineHeight: 1.55 }}>{doc.description}</p>
               )}
@@ -360,7 +361,7 @@ function EightBitOrbitPanel({ group }: { group: AuthorGroup }) {
               {/* pixel L-brackets at opposite corners */}
               <span aria-hidden style={{ position: "absolute", top: "-2px", left: "-2px", width: "14px", height: "14px", borderTop: `3px solid ${ac}`, borderLeft: `3px solid ${ac}` }} />
               <span aria-hidden style={{ position: "absolute", bottom: "-2px", right: "-2px", width: "14px", height: "14px", borderBottom: `3px solid ${ac}`, borderRight: `3px solid ${ac}` }} />
-              <h3 style={{ margin: 0, fontFamily: display, fontWeight: 700, fontSize: "23px", lineHeight: 1.05, color: ac, textTransform: "uppercase" }}>{doc.subject}</h3>
+              <h3 style={{ margin: 0, display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap", fontFamily: display, fontWeight: 700, fontSize: "23px", lineHeight: 1.05, color: ac, textTransform: "uppercase" }}>{doc.subject} <DepthTag doc={doc} tilt={i} /></h3>
               {doc.description && <p style={{ margin: "10px 0 0", fontFamily: body, fontSize: "13px", lineHeight: 1.55, color: lav }}>{doc.description}</p>}
               <div style={{ marginTop: "12px" }}>
                 <ProgressBar doc={doc} ink={ac} accent={ac} font={body} onDark />
@@ -428,7 +429,7 @@ function PinAndPaperPanel({ group }: { group: AuthorGroup }) {
             <div style={{ fontFamily: mono, fontSize: "11px", letterSpacing: "0.06em", color: red, textTransform: "uppercase", marginBottom: "8px" }}>
               {doc.title}
             </div>
-            <h3 style={{ margin: 0, fontFamily: script, fontWeight: 700, fontSize: "30px", lineHeight: 0.95, color: ink }}>{doc.subject}</h3>
+            <h3 style={{ margin: 0, display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap", fontFamily: script, fontWeight: 700, fontSize: "30px", lineHeight: 0.95, color: ink }}>{doc.subject} <DepthTag doc={doc} tilt={i} /></h3>
             {doc.description && <p style={{ margin: "8px 0 0", fontFamily: body, fontSize: "13px", lineHeight: 1.5, color: ink }}>{doc.description}</p>}
             <div style={{ marginTop: "12px" }}>
               <ProgressBar doc={doc} ink={ink} accent={red} font={body} />
@@ -492,7 +493,7 @@ function GenericPanel({ group, token }: { group: AuthorGroup; token: StyleToken 
           >
             <div style={{ height: "12px", background: i % 2 === 0 ? token.accent : token.accent2 ?? token.accent, borderBottom: `2px solid ${token.ink}`, borderRadius: radius === "0px" ? "0" : `${radius} ${radius} 0 0` }} />
             <div style={{ padding: "18px", display: "grid", gap: "10px", alignContent: "start" }}>
-              <h3 style={{ margin: 0, fontFamily: token.display, fontWeight: 700, fontSize: "24px", lineHeight: 1.02 }}>{doc.subject}</h3>
+              <h3 style={{ margin: 0, display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap", fontFamily: token.display, fontWeight: 700, fontSize: "24px", lineHeight: 1.02 }}>{doc.subject} <DepthTag doc={doc} tilt={i} /></h3>
               {doc.description && <p style={{ margin: 0, fontFamily: token.body, fontSize: "13px", lineHeight: 1.55 }}>{doc.description}</p>}
               <ProgressBar doc={doc} ink={token.ink} accent={token.accent} font={token.body} />
               <div style={{ fontFamily: token.body, fontWeight: 700, fontSize: "10.5px", textTransform: "uppercase", letterSpacing: "0.06em", opacity: 0.6, borderTop: `1.5px solid ${token.ink}`, paddingTop: "9px" }}>
@@ -524,9 +525,9 @@ function PlainPanel({ group }: { group: AuthorGroup }) {
     <section id={group.author.toLowerCase()} style={{ background: "#fff", border: `1.5px solid ${ink}`, padding: "30px clamp(24px,4vw,44px) 34px" }}>
       <h2 style={{ margin: "0 0 18px", fontFamily: "system-ui, sans-serif", fontWeight: 700, fontSize: "clamp(28px,3.5vw,40px)", color: ink }}>{group.author}</h2>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(250px,1fr))", gap: "16px" }}>
-        {group.docs.map((doc) => (
+        {group.docs.map((doc, i) => (
           <a key={doc.slug} href={`/d/${doc.slug}`} style={{ border: `1.5px solid ${ink}`, padding: "16px", textDecoration: "none", color: ink, display: "grid", gap: "8px", alignContent: "start" }}>
-            <strong style={{ fontSize: "19px" }}>{doc.subject}</strong>
+            <strong style={{ fontSize: "19px", display: "inline-flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>{doc.subject} <DepthTag doc={doc} tilt={i} /></strong>
             {doc.description && <span style={{ fontSize: "13px", lineHeight: 1.5, opacity: 0.8 }}>{doc.description}</span>}
             <ProgressBar doc={doc} ink={ink} accent={ink} font="system-ui, sans-serif" />
             <span style={{ fontSize: "11px", opacity: 0.6 }}>{doc.title} · {date(doc.updatedAt)}{read(doc)}</span>

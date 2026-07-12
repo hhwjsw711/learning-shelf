@@ -176,86 +176,65 @@ export function Polaroid({ src, name, index }: { src: string; name: string; inde
   );
 }
 
-// ── Depth stickies ────────────────────────────────────────────────────────
+// ── Depth tag ─────────────────────────────────────────────────────────────
+// A tiny sticky stuck next to the doc's title — just the current level's
+// emoji + name. Board language (post-it fill, hand lean, Caveat) on top of
+// the author's card, and a click opens the full depth report. The cards are
+// links, so the tag swallows the click instead of navigating.
 
-export function DepthStickies({ docs, index }: { docs: DocMeta[]; index: number }) {
-  const dived = docs.filter((d) => d.wordCount > 0).slice(0, 3);
+export function DepthTag({ doc, tilt = 0 }: { doc: DocMeta; tilt?: number }) {
   const { origin, entered, open, close } = useFlip();
-  const [active, setActive] = useState<DocMeta | null>(null);
-  if (dived.length === 0) return null;
+  if (doc.wordCount <= 0) return null;
+  const now = depthIndex(doc.wordCount);
+  const fill = STICKY_FILLS[tilt % STICKY_FILLS.length];
+  const pin = PIN_FILLS[tilt % PIN_FILLS.length];
 
   return (
-    <div
-      style={{
-        position: "absolute",
-        bottom: "-16px",
-        left: "clamp(14px, 5vw, 52px)",
-        right: "clamp(14px, 5vw, 52px)",
-        display: "flex",
-        justifyContent: "flex-start",
-        gap: "14px",
-        flexWrap: "wrap",
-        zIndex: 6,
-        pointerEvents: "none",
-      }}
-    >
-      {dived.map((doc, d) => {
-        const now = depthIndex(doc.wordCount);
-        const headed = projectedDepthIndex(doc.wordCount, doc.modulesDone, doc.modulesTotal);
-        return (
-          <button
-            key={doc.slug}
-            title={`${doc.subject}: ${doc.wordCount.toLocaleString()} words written so far — click for the depth report`}
-            onClick={(e) => {
-              setActive(doc);
-              open(e.currentTarget);
-            }}
-            style={{
-              position: "relative",
-              background: STICKY_FILLS[(index + d) % STICKY_FILLS.length],
-              padding: "8px 14px 9px",
-              border: "none",
-              textAlign: "left",
-              boxShadow: noteShadow,
-              transform: `rotate(${(index + d) % 2 === 0 ? "-2deg" : "2.2deg"})`,
-              pointerEvents: "auto",
-              cursor: "zoom-in",
-            }}
-          >
-            <span
-              style={{
-                position: "absolute",
-                top: "-7px",
-                left: "14px",
-                width: "12px",
-                height: "12px",
-                borderRadius: "50%",
-                background: PIN_FILLS[(index + d) % PIN_FILLS.length],
-                boxShadow: "0 2px 4px rgba(45,42,38,0.45), inset -1px -1px 3px rgba(0,0,0,0.2)",
-              }}
-            />
-            <span style={{ display: "block", lineHeight: 1, whiteSpace: "nowrap" }} aria-hidden>
-              {DEPTH_LEVELS.map((l, i) => (
-                <span key={l.label} style={{ fontSize: i === now ? "16px" : "11px", opacity: i <= now ? 1 : 0.3, filter: i <= now ? "none" : "grayscale(1)", marginRight: "2px" }}>
-                  {l.emoji}
-                </span>
-              ))}
-            </span>
-            <span style={{ display: "block", marginTop: "3px", fontFamily: script, fontWeight: 700, fontSize: "16px", lineHeight: 1.1, color: ink, whiteSpace: "nowrap" }}>
-              {dived.length > 1 ? `${doc.subject.toLowerCase()}: ` : ""}
-              {DEPTH_LEVELS[now].label}
-              {headed > now ? ` → ${DEPTH_LEVELS[headed].emoji} soon` : "!"}
-            </span>
-          </button>
-        );
-      })}
+    <>
+      <span
+        role="button"
+        tabIndex={0}
+        title={`${doc.wordCount.toLocaleString()} words written so far — click for the depth report`}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          open(e.currentTarget);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            e.stopPropagation();
+            open(e.currentTarget);
+          }
+        }}
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: "5px",
+          background: fill,
+          padding: "3px 9px 4px",
+          boxShadow: "1px 2px 6px rgba(45,42,38,0.3)",
+          transform: `rotate(${tilt % 2 === 0 ? "-2deg" : "2deg"})`,
+          fontFamily: script,
+          fontWeight: 700,
+          fontSize: "14px",
+          lineHeight: 1,
+          color: ink,
+          whiteSpace: "nowrap",
+          cursor: "zoom-in",
+          verticalAlign: "middle",
+        }}
+      >
+        <span aria-hidden style={{ fontSize: "13px" }}>{DEPTH_LEVELS[now].emoji}</span>
+        {DEPTH_LEVELS[now].label}
+      </span>
 
-      {origin && active && (
-        <FlipModal origin={origin} entered={entered} targetWidth="min(92vw, 440px)" onClose={() => { close(); setTimeout(() => setActive(null), 340); }}>
-          <DepthReport doc={active} fill={STICKY_FILLS[(index + dived.indexOf(active)) % STICKY_FILLS.length]} pin={PIN_FILLS[(index + Math.max(0, dived.indexOf(active))) % PIN_FILLS.length]} />
+      {origin && (
+        <FlipModal origin={origin} entered={entered} targetWidth="min(92vw, 440px)" onClose={close}>
+          <DepthReport doc={doc} fill={fill} pin={pin} />
         </FlipModal>
       )}
-    </div>
+    </>
   );
 }
 

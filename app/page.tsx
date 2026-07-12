@@ -11,7 +11,7 @@ import { OWNER_COOKIE } from "@/lib/owner";
 import { AuthorPanel, type AuthorGroup } from "@/lib/sections";
 import { LetsLearn } from "./LetsLearn";
 import { OwnerControls } from "./OwnerControls";
-import { DepthStickies, Polaroid } from "./BoardBits";
+import { Polaroid } from "./BoardBits";
 
 export const dynamic = "force-dynamic";
 
@@ -181,7 +181,6 @@ export default async function ShelfPage() {
             <PinnedPage
               key={group.author}
               index={i}
-              docs={group.docs}
               avatar={
                 avatarAuthors.has(group.author.toLowerCase())
                   ? { src: `/a/${group.author.toLowerCase()}`, name: group.author }
@@ -234,12 +233,10 @@ export default async function ShelfPage() {
 function PinnedPage({
   index,
   avatar,
-  docs = [],
   children,
 }: {
   index: number;
   avatar?: { src: string; name: string };
-  docs?: DocMeta[];
   children: ReactNode;
 }) {
   return (
@@ -251,9 +248,6 @@ function PinnedPage({
     >
       {/* the author's polaroid, overlapping the paper's top-right corner */}
       {avatar && <Polaroid src={avatar.src} name={avatar.name} index={index} />}
-      {/* the board's commentary on how deep each dive goes, stuck to the
-          bottom edge like a friend's annotation */}
-      <DepthStickies docs={docs} index={index} />
       {/* masking tape across the top */}
       <div
         aria-hidden
