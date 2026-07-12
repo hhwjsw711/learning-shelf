@@ -28,9 +28,14 @@ that person's Claude as they learn. Your job right now:
    - \`~/.claude/skills/learning-shelf/SKILL.md\`
    - \`~/.claude/skills/learn/SKILL.md\`
    - \`~/.claude/skills/beautiful-html-templates/SKILL.md\`
-2. Clone the template library if it isn't already there:
+2. Add the "Learning → The Shelf" block (further below, after the skill files)
+   to \`~/.claude/CLAUDE.md\` — create that file if it doesn't exist, and skip if
+   a "## Learning → The Shelf" section is already there. This is what makes you
+   proactively offer a tracked learning plan whenever ${name} wants to learn
+   something.
+3. Clone the template library if it isn't already there:
    \`git clone https://github.com/zarazhangrui/beautiful-html-templates ~/beautiful-html-templates\`
-3. Confirm what you installed, show ${name} the board at ${SHELF_URL},
+4. Confirm what you installed, show ${name} the board at ${SHELF_URL},
    then ask what they're learning right now and offer to start their first doc
    (the learning-shelf skill explains the whole ritual).
 
@@ -46,8 +51,48 @@ ${learnSkill()}
 
 ${templatesSkill()}
 
+──────── append to ~/.claude/CLAUDE.md (skip if already present) ────────
+
+${learningPlanRule(name, author, bandStyle)}
+
 ──────── end of files ────────
 `;
+}
+
+// The global habit: whenever the friend wants to learn something, their Claude
+// offers to turn it into a tracked, published learning plan. Lives in
+// ~/.claude/CLAUDE.md so it applies to every session.
+function learningPlanRule(name: string, author: string, bandStyle: string): string {
+  return `## Learning → The Shelf
+
+${name} keeps living learning docs on The Shelf (see the \`learning-shelf\` and
+\`learn\` skills). Whenever ${name} wants to learn, understand, study, or deeply
+explore a topic — "teach me…", "help me understand…", "I want to learn…",
+"walk me through…" — do NOT just start explaining. First offer to make it a
+tracked plan:
+
+> "Want me to turn this into a proper learning plan — pinned to The Shelf and
+> updated as you go?"
+
+If ${name} says yes:
+
+1. **Ask which style the doc should use**, offering three choices:
+   - **your usual** — the \`${bandStyle}\` template (${name}'s default look);
+   - **surprise me** — pick a fitting template at random from
+     \`~/beautiful-html-templates\` (read \`index.json\`, choose one whose mood
+     suits the topic);
+   - **or name a specific template** from the library.
+2. **Plan the modules** with the \`learn\` skill — sketch the full module set,
+   then generate only the first module.
+3. **Build the doc** with the \`beautiful-html-templates\` skill in the chosen
+   template, and **publish it** with the \`learning-shelf\` skill, filling in the
+   progress fields (\`modulesTotal\`, \`modulesDone=1\`, \`currentModule\`) and
+   \`author=${author}\`, \`authorStyle=${bandStyle}\`.
+4. **Keep it updated**: each time a module is finished, re-publish with a bumped
+   \`modulesDone\` and the next \`currentModule\`.
+
+If ${name} says no, just teach normally — still using the \`learn\` skill's
+depth-and-motivation style, just without creating a doc.`;
 }
 
 function shelfSkill(name: string, author: string, bandStyle: string): string {
