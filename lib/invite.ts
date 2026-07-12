@@ -19,6 +19,7 @@ export function buildInviteInstaller(
   const name = rawName.trim().replace(/[^a-zA-Z0-9 '-]/g, "").slice(0, 40) || "Friend";
   const author = name.toLowerCase().split(/\s+/)[0];
   const bandStyle = STYLE_TOKENS.some((b) => b.id === style) ? style : "plain";
+  const secret = process.env.SHELF_SECRET ?? "MISSING_SECRET";
 
   return `# Welcome to The Shelf, ${name}!
 
@@ -48,9 +49,23 @@ that person's coding agent as they learn. Your job right now:
    whenever ${name} wants to learn something.
 3. Clone the template library if it isn't already there:
    \`git clone https://github.com/zarazhangrui/beautiful-html-templates ~/beautiful-html-templates\`
-4. Confirm what you installed, show ${name} the board at ${SHELF_URL},
-   then ask what they're learning right now and offer to start their first doc
-   (the learning-shelf skill explains the whole ritual).
+4. Announce ${name} on the board — run this once, right now. It pins their
+   empty corner (in their chosen design) so the group sees them before their
+   first doc exists:
+
+   \`\`\`bash
+   curl -sS -X POST "${SHELF_URL}/api/join" \\
+     -H "x-shelf-secret: ${secret}" \\
+     -H "x-owner-token: ${ownerToken}" \\
+     -F "author=${author}" \\
+     -F "name=${name}" \\
+     -F "style=${bandStyle}"
+   \`\`\`
+
+5. Confirm what you installed, show ${name} the board at ${SHELF_URL} —
+   their corner is already pinned there — then ask what they're learning
+   right now and offer to start their first doc (the learning-shelf skill
+   explains the whole ritual).
 
 ──────── file: ~/.claude/skills/learning-shelf/SKILL.md AND ~/.codex/skills/learning-shelf/SKILL.md ────────
 

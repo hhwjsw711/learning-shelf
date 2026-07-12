@@ -5,7 +5,7 @@
 // panel styles stop being a clash and become the point: it's a pinboard.
 
 import type { CSSProperties, ReactNode } from "react";
-import { listAvatarAuthors, listDocs, type DocMeta } from "@/lib/store";
+import { listAvatarAuthors, listDocs, listJoinedAuthors, type DocMeta } from "@/lib/store";
 import { AuthorPanel, type AuthorGroup } from "@/lib/sections";
 import { LetsLearn } from "./LetsLearn";
 
@@ -34,8 +34,19 @@ const pinFills = [
 ];
 
 export default async function ShelfPage() {
-  const [docs, avatarAuthors] = await Promise.all([listDocs(), listAvatarAuthors()]);
+  const [docs, avatarAuthors, joined] = await Promise.all([
+    listDocs(),
+    listAvatarAuthors(),
+    listJoinedAuthors(),
+  ]);
   const groups = groupByAuthor(docs);
+  // Members who announced themselves but haven't published yet get an empty
+  // corner at the end of the board, already wearing their chosen design.
+  for (const member of joined) {
+    if (!groups.some((g) => g.author.toLowerCase() === member.author)) {
+      groups.push({ author: member.author, authorStyle: member.style, docs: [] });
+    }
+  }
 
   return (
     <main

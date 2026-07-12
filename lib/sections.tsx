@@ -17,6 +17,11 @@ export type AuthorGroup = {
 };
 
 export function AuthorPanel({ group }: { group: AuthorGroup }) {
+  // A member who joined but hasn't published yet still gets their corner —
+  // in their chosen palette, waiting for the first doc.
+  if (group.docs.length === 0) {
+    return <JustJoinedPanel group={group} />;
+  }
   switch (group.authorStyle) {
     case "cobalt-grid":
       return <CobaltGridPanel group={group} />;
@@ -40,6 +45,45 @@ export function AuthorPanel({ group }: { group: AuthorGroup }) {
 }
 
 const date = (iso: string) => iso.slice(0, 10);
+
+// The empty corner of a member who has joined (via their kit's hello call)
+// but hasn't pinned a first doc yet. Token-driven so it already wears their
+// chosen design.
+function JustJoinedPanel({ group }: { group: AuthorGroup }) {
+  const token = TOKENS_BY_ID[group.authorStyle];
+  const bg = token?.bg ?? "#FBF8EF";
+  const ink = token?.ink ?? "#2D2A26";
+  const accent = token?.accent ?? "#2D2A26";
+  const display = token?.display ?? "'Zilla Slab', serif";
+  const body = token?.body ?? "'Zilla Slab', serif";
+
+  return (
+    <section
+      id={group.author.toLowerCase()}
+      style={{
+        background: bg,
+        border: `2px solid ${ink}`,
+        borderRadius: token?.radius,
+        padding: "30px clamp(24px, 4vw, 44px) 36px",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: "16px", flexWrap: "wrap", borderBottom: `2px solid ${ink}`, paddingBottom: "12px" }}>
+        <h2 style={{ margin: 0, fontFamily: display, fontSize: "clamp(28px, 3.6vw, 40px)", lineHeight: 1, color: ink }}>
+          {group.author}
+        </h2>
+        <span style={{ fontFamily: body, fontSize: "12px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: accent }}>
+          just joined
+        </span>
+      </div>
+      <p style={{ margin: "18px 0 0", fontFamily: body, fontSize: "16px", lineHeight: 1.6, color: ink, opacity: 0.85, maxWidth: "52ch" }}>
+        this corner is claimed — {group.author} is picking a first topic.
+      </p>
+      <p style={{ margin: "10px 0 0", fontFamily: "'Caveat', cursive", fontWeight: 600, fontSize: "22px", color: accent }}>
+        first doc coming soon ✎
+      </p>
+    </section>
+  );
+}
 
 // A tiny progress meter for a doc's module journey. Rendered in the card's own
 // ink + accent so it fits whatever style it lands in. Hidden when a doc has no

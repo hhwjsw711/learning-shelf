@@ -124,7 +124,15 @@ export async function deleteDoc(slug: string): Promise<void> {
 
 const AUTHOR_DIR = join(process.cwd(), ".data", "authors");
 
-type AuthorRecord = { tokenHash: string; createdAt: string };
+// name/style/joinedAt arrive when the member's agent announces itself via
+// /api/join — that's what puts an empty corner on the board before any doc.
+type AuthorRecord = {
+  tokenHash: string;
+  createdAt: string;
+  name?: string;
+  style?: string;
+  joinedAt?: string;
+};
 
 export async function getAuthorRecord(
   author: string,
@@ -148,8 +156,10 @@ export async function getAuthorRecord(
 }
 
 export async function claimAuthor(author: string, tokenHash: string): Promise<void> {
-  const record: AuthorRecord = { tokenHash, createdAt: new Date().toISOString() };
+  await writeAuthorRecord(author, { tokenHash, createdAt: new Date().toISOString() });
+}
 
+async function writeAuthorRecord(author: string, record: AuthorRecord): Promise<void> {
   if (usingBlob()) {
     const { put } = await import("@vercel/blob");
     await put(`authors/${author}.json`, JSON.stringify(record), {
@@ -164,6 +174,64 @@ export async function claimAuthor(author: string, tokenHash: string): Promise<vo
 
   await mkdir(AUTHOR_DIR, { recursive: true });
   await writeFile(join(AUTHOR_DIR, `${author}.json`), JSON.stringify(record), "utf-8");
+}
+
+// Merge join-time profile fields into the author's record.
+export async function saveAuthorProfile(
+  author: string,
+  profile: { name: string; style: string },
+): Promise<void> {
+  const record = await getAuthorRecord(author);
+  if (!record) throw new Error(`no author record for ${author}`);
+  await writeAuthorRecord(author, {
+    ...record,
+    name: profile.name,
+    style: profile.style,
+    joinedAt: record.joinedAt ?? new Date().toISOString(),
+  });
+}
+
+// Every member who has announced themselves (joined), for the board.
+export async function listJoinedAuthors(): Promise<
+  Array<{ author: string; name: string; style: string }>
+> {
+  let records: Array<{ author: string; record: AuthorRecord }> = [];
+
+  if (usingBlob()) {
+    const { list } = await import("@vercel/blob");
+    const { blobs } = await list({ prefix: "authors/", limit: 1000 });
+    records = await Promise.all(
+      blobs.map(async (b) => {
+        const res = await fetch(b.url, { cache: "no-store" });
+        return {
+          author: b.pathname.replace(/^authors\//, "").replace(/\.json$/, ""),
+          record: (await res.json()) as AuthorRecord,
+        };
+      }),
+    );
+  } else {
+    try {
+      const files = await readdir(AUTHOR_DIR);
+      records = await Promise.all(
+        files
+          .filter((f) => f.endsWith(".json"))
+          .map(async (f) => ({
+            author: f.replace(/\.json$/, ""),
+            record: JSON.parse(await readFile(join(AUTHOR_DIR, f), "utf-8")),
+          })),
+      );
+    } catch {
+      records = [];
+    }
+  }
+
+  return records
+    .filter(({ record }) => record.joinedAt && record.style)
+    .map(({ author, record }) => ({
+      author,
+      name: record.name || author,
+      style: record.style || "plain",
+    }));
 }
 
 export async function getDocMeta(slug: string): Promise<DocMeta | undefined> {
