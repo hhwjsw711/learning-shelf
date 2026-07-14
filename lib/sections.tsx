@@ -533,16 +533,13 @@ function FalStylePanel({ group }: { group: AuthorGroup }) {
       style={{
         background: paper,
         backgroundImage:
-          "linear-gradient(rgba(104,29,228,0.055) 1px, transparent 1px), linear-gradient(90deg, rgba(104,29,228,0.055) 1px, transparent 1px)",
+          "linear-gradient(rgba(104,29,228,0.14) 1px, transparent 1px), linear-gradient(90deg, rgba(104,29,228,0.14) 1px, transparent 1px)",
         backgroundSize: "28px 28px",
         border: `2px solid ${ink}`,
         padding: "30px clamp(24px, 4vw, 44px) 36px",
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: "14px", flexWrap: "wrap", borderBottom: `2px solid ${ink}`, paddingBottom: "14px" }}>
-        <span style={{ fontFamily: mono, fontSize: "11px", letterSpacing: "0.08em", textTransform: "uppercase", color: paper, background: ink, padding: "4px 10px" }}>
-          {String(group.total ?? group.docs.length).padStart(2, "0")} DOCS
-        </span>
         <h2 style={{ margin: 0, fontFamily: grotesk, fontWeight: 700, fontSize: "clamp(32px, 4.2vw, 50px)", lineHeight: 0.92, letterSpacing: "-0.04em", color: ink }}>
           {group.author}
         </h2>
