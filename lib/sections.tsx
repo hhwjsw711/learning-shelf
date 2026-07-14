@@ -37,6 +37,8 @@ export function AuthorPanel({ group }: { group: AuthorGroup }) {
       return <EightBitOrbitPanel group={group} />;
     case "pin-and-paper":
       return <PinAndPaperPanel group={group} />;
+    case "fal-style":
+      return <FalStylePanel group={group} />;
     default: {
       const token = TOKENS_BY_ID[group.authorStyle];
       return token ? (
@@ -498,6 +500,109 @@ function GenericPanel({ group, token }: { group: AuthorGroup; token: StyleToken 
             </div>
           </a>
         ))}
+      </div>
+    </section>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// FAL STYLE — signal-dense: near-white paper over a ghost purple grid, tight
+// grotesk display (Archivo standing in for fal's Focal), Consolas mono
+// labels, hard ink rules, bordered cards with saturated headers cycling
+// electric purple / lime / pink / cyan. One active tag may use lime.
+// ─────────────────────────────────────────────────────────────────────────
+function FalStylePanel({ group }: { group: AuthorGroup }) {
+  const paper = "#FEFDFF";
+  const ink = "#09090B";
+  const graphite = "#5F5B66";
+  const purple = "#681DE4";
+  const lime = "#ADFF00";
+  const grotesk = "'Archivo', 'Arial Black', system-ui, sans-serif";
+  const mono = "Consolas, 'SFMono-Regular', ui-monospace, monospace";
+  // saturated card headers, cycled; text flips for the light fills
+  const heads = [
+    { bg: "#681DE4", fg: "#FFFFFF" },
+    { bg: "#ADFF00", fg: "#09090B" },
+    { bg: "#EB064A", fg: "#FFFFFF" },
+    { bg: "#99E5FF", fg: "#09090B" },
+  ];
+
+  return (
+    <section
+      id={group.author.toLowerCase()}
+      style={{
+        background: paper,
+        backgroundImage:
+          "linear-gradient(rgba(104,29,228,0.055) 1px, transparent 1px), linear-gradient(90deg, rgba(104,29,228,0.055) 1px, transparent 1px)",
+        backgroundSize: "28px 28px",
+        border: `2px solid ${ink}`,
+        padding: "30px clamp(24px, 4vw, 44px) 36px",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: "14px", flexWrap: "wrap", borderBottom: `2px solid ${ink}`, paddingBottom: "14px" }}>
+        <span style={{ fontFamily: mono, fontSize: "11px", letterSpacing: "0.08em", textTransform: "uppercase", color: paper, background: ink, padding: "4px 10px" }}>
+          {String(group.total ?? group.docs.length).padStart(2, "0")} DOCS
+        </span>
+        <h2 style={{ margin: 0, fontFamily: grotesk, fontWeight: 700, fontSize: "clamp(32px, 4.2vw, 50px)", lineHeight: 0.92, letterSpacing: "-0.04em", color: ink }}>
+          {group.author}
+        </h2>
+        <span style={{ marginLeft: "auto", fontFamily: mono, fontSize: "11px", letterSpacing: "0.08em", textTransform: "uppercase", color: purple }}>
+          fal.style
+        </span>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(270px, 1fr))", gap: "20px", marginTop: "22px" }}>
+        {group.docs.map((doc, i) => {
+          const head = heads[i % heads.length];
+          return (
+            <a
+              key={doc.slug}
+              href={`/d/${doc.slug}`}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                minWidth: 0,
+                background: "#FFFFFF",
+                border: `1.5px solid ${ink}`,
+                boxShadow: `4px 4px 0 ${ink}`,
+                textDecoration: "none",
+                color: ink,
+              }}
+            >
+              {/* saturated header band with mono index */}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "10px", background: head.bg, color: head.fg, padding: "7px 12px" }}>
+                <span style={{ fontFamily: mono, fontSize: "10.5px", letterSpacing: "0.1em", textTransform: "uppercase" }}>
+                  DOC {String(i + 1).padStart(2, "0")}
+                </span>
+                <span style={{ fontFamily: mono, fontSize: "10.5px", letterSpacing: "0.06em" }}>
+                  {date(doc.updatedAt)}
+                </span>
+              </div>
+              <div style={{ display: "grid", gap: "10px", padding: "16px 16px 18px", minWidth: 0 }}>
+                <h3 style={{ margin: 0, fontFamily: grotesk, fontWeight: 700, fontSize: "22px", lineHeight: 0.98, letterSpacing: "-0.025em" }}>
+                  {doc.subject} <DepthTag doc={doc} tilt={i} />
+                </h3>
+                {doc.description && (
+                  <p style={{ margin: 0, fontFamily: grotesk, fontWeight: 400, fontSize: "14px", lineHeight: 1.5, color: graphite }}>
+                    {doc.description}
+                  </p>
+                )}
+                <ProgressBar doc={doc} ink={ink} accent={purple} font={mono} />
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", minWidth: 0, borderTop: `1.5px solid ${ink}`, paddingTop: "9px" }}>
+                  <span style={{ fontFamily: mono, fontSize: "10.5px", letterSpacing: "0.06em", textTransform: "uppercase", color: graphite, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>
+                    {doc.title}{read(doc)}
+                  </span>
+                  {/* the one active tag may use lime */}
+                  {doc.modulesTotal > 0 && doc.modulesDone < doc.modulesTotal && (
+                    <span style={{ marginLeft: "auto", flex: "0 0 auto", fontFamily: mono, fontSize: "10px", letterSpacing: "0.08em", textTransform: "uppercase", background: lime, color: ink, border: `1px solid ${ink}`, padding: "2px 7px" }}>
+                      ACTIVE
+                    </span>
+                  )}
+                </div>
+              </div>
+            </a>
+          );
+        })}
       </div>
     </section>
   );

@@ -267,6 +267,15 @@ export const STYLE_TOKENS: StyleToken[] = [
     bg: "#2A3870", ink: "#E8D85C", accent: "#3A7878",
     display: "'Cormorant Garamond', Georgia, serif", body: "'DM Sans', system-ui, sans-serif",
   },
+  {
+    id: "fal-style",
+    label: "fal Style — ghost grid, electric purple & lime",
+    preview: "/previews/fal-style.png",
+    bespoke: true,
+    bg: "#FEFDFF", ink: "#09090B", accent: "#681DE4", accent2: "#ADFF00",
+    display: "'Archivo', 'Arial Black', system-ui, sans-serif",
+    body: "'Archivo', system-ui, sans-serif",
+  }
 ];
 
 export const TOKENS_BY_ID: Record<string, StyleToken> = Object.fromEntries(
