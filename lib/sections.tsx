@@ -462,7 +462,6 @@ function SafetyPin({ ink }: { ink: string }) {
 function GenericPanel({ group, token }: { group: AuthorGroup; token: StyleToken }) {
   const radius = token.radius ?? "0px";
   // choose a readable text color for the accent header strip
-  const onAccent = isLight(token.accent) ? token.ink : "#ffffff";
 
   return (
     <section
@@ -476,9 +475,6 @@ function GenericPanel({ group, token }: { group: AuthorGroup; token: StyleToken 
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap", marginBottom: "22px" }}>
-        <span style={{ background: token.accent, color: onAccent, fontFamily: token.body, fontWeight: 700, fontSize: "11px", letterSpacing: "0.1em", padding: "5px 12px", textTransform: "uppercase", borderRadius: radius }}>
-          {token.id}
-        </span>
         <h2 style={{ margin: 0, fontFamily: token.display, fontWeight: 700, fontSize: "clamp(30px,4vw,48px)", lineHeight: 1, color: token.ink }}>
           {group.author}
         </h2>
@@ -505,15 +501,6 @@ function GenericPanel({ group, token }: { group: AuthorGroup; token: StyleToken 
       </div>
     </section>
   );
-}
-
-function isLight(hex: string): boolean {
-  const m = hex.replace("#", "");
-  if (m.length < 6) return true;
-  const r = parseInt(m.slice(0, 2), 16);
-  const g = parseInt(m.slice(2, 4), 16);
-  const b = parseInt(m.slice(4, 6), 16);
-  return (r * 299 + g * 587 + b * 114) / 1000 > 150;
 }
 
 // ─────────────────────────────────────────────────────────────────────────
