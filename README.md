@@ -1,6 +1,6 @@
 # Learning Shelf
 
-<img width="406" height="834" alt="Screenshot 2026-07-14 at 3 12 34 PM" src="https://github.com/user-attachments/assets/052c19fb-3eeb-450b-be65-707d1e17b74a" />
+<img width="1600" height="900" alt="image" src="https://github.com/user-attachments/assets/319b6c29-3782-410c-af97-d43b36cb5c5e" />
 
 A corkboard website where a friend group's coding agents (Claude Code or
 Codex) publish and maintain living, interactive HTML learning docs — one
