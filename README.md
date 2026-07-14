@@ -1,85 +1,27 @@
 # Learning Shelf
 
-A corkboard website where a friend group's coding agents (Claude Code or
-Codex) publish and maintain living, interactive HTML learning docs — one
-corner per person. Each doc is one self-contained HTML file, written and
-republished by that person's agent as they genuinely learn, with modules,
-progress bars, measured reading depth (🏖️→🦑), polaroids, and per-corner
-designs drawn from 35 template systems.
+A corkboard website for your friend group. Everyone's coding agent
+(Claude Code or Codex) becomes their tutor — it teaches them whatever
+they want to learn, one module at a time, and keeps a living, interactive
+webpage of it pinned to their corner of the board. Progress bars fill,
+depth levels sink from 🏖️ wading to 🦑 the abyss, and your friends get to
+wander over and see what you're deep in.
 
 <img width="1600" height="900" alt="image" src="https://github.com/user-attachments/assets/319b6c29-3782-410c-af97-d43b36cb5c5e" />
 
-```text
-GET    /                    the board (all corners, newest first)
-GET    /d/<slug>            a doc, served verbatim as text/html
-GET    /invite              self-service: mint a contributor kit (password-gated)
-GET    /og                  live share-card image
-GET    /a/<author>          an author's polaroid photo
-POST   /api/invite          mint an installer (auth: shelf password; sets member cookie)
-POST   /api/join            announce a member — empty corner before any doc
-POST   /api/publish         upsert a doc (multipart)
-DELETE /api/publish?slug=…  remove a doc
-POST   /api/avatar          set an author's polaroid
-DELETE /api/member          leave the board (docs + photo + corner)
-GET    /api/session         re-establish the member cookie on a new browser
+## That's all you need to know
 
-# write auth, two layers: x-shelf-secret proves you're in the group,
-# x-owner-token proves the corner is yours (member cookie works too)
-```
+The whole point of this tool is that your agent understands the innards so
+you don't have to. Don't bother reading code or docs — do one of these two
+things:
 
-## How it works, in plain words
+**Join a friend's board** — ask them for their board's password, open their
+board's `/invite` page, pick your corner's design, and paste the kit it
+gives you into Claude Code or Codex. Your agent does the rest.
 
-**What it is.** A website that looks like a corkboard. Each friend gets a
-corner. Your corner shows what you're learning right now — as a real,
-readable, interactive webpage that grows while you learn, not a screenshot
-of your notes.
-
-**How the learning works.** You don't write these pages. You tell your AI
-coding agent (Claude Code or Codex) "I want to learn about bonds," and it
-becomes your tutor: it plans the topic as modules, teaches you one at a
-time, checks you actually got it, and writes each finished module into your
-page — with sliders, quizzes, and diagrams you can poke. Every time you
-finish a module, your agent republishes the page to the board, so your
-friends can watch your progress bar move and your depth level sink from
-🏖️ wading toward 🦑 the abyss.
-
-**How you join a friend's board.** Ask them for the password, then:
-
-1. Open their board's `/invite` page.
-2. Type your name, pick a design for your corner (35 to choose from), add
-   a photo for your polaroid if you like.
-3. The site mints you a personal kit — one block of markdown.
-4. Paste the whole kit into Claude Code or Codex. Your agent installs
-   everything, announces you on the board, and asks what you want to
-   learn first.
-
-That's it — no account, no signup. Your corner appears on the board the
-moment your kit is minted, and only you can change it (each member gets a
-private owner token, so nobody can touch anyone else's corner).
-
-**How you start your own board.** Copy the deploy block below into your
-agent — it stands up your own shelf on Vercel in a few minutes, and you
-pick the password your friends will use.
-
-## Storage
-
-- **Local dev**: files under `.data/docs/` (gitignored). No setup.
-- **Vercel**: Vercel Blob, automatically used when `BLOB_READ_WRITE_TOKEN`
-  exists (connecting a Blob store to the project provides it).
-
-## Run locally
-
-```bash
-npm install
-printf "SHELF_SECRET=<secret>\nINVITE_PASSWORD=<password>\n" > .env.local
-npm run dev            # http://localhost:4321
-```
-
-## Deploy your own shelf
-
-Want a shelf for your own friend group? Copy the block below, **fill in the
-password line**, and paste the whole thing into Claude Code or Codex. Your
-agent does the deploy for you.
+**Start your own board** — copy the block below, fill in the password line,
+and paste the whole thing into Claude Code or Codex. Your agent deploys it
+and hands you the links to share.
 
 ```text
 Agent: I want my own Learning Shelf — a corkboard site where my friends and I
@@ -132,42 +74,6 @@ My shelf password is: ________
    the board owner — "runs this board" — with no configuration.
 ```
 
-## Deploy (this instance)
+---
 
-Already wired: pushing to `master` on github.com/noahgsolomon/learning-shelf
-auto-deploys via the Vercel Git integration. Production alias:
-https://noah-learning-shelf.vercel.app
-
-One-time setup that is already done (recorded for posterity): Blob store
-`shelf-docs` connected to the project (provides `BLOB_READ_WRITE_TOKEN`),
-`SHELF_SECRET` and `INVITE_PASSWORD` set in production, deployment protection
-disabled so the directory and publish API are public.
-
-## Contributors
-
-New contributors join via the **invite page** (`/invite`): enter your name,
-the shelf password, pick your corner's design, and it mints a
-paste-into-your-agent installer carrying all three skills (the shelf
-contributor skill with the secret, the learn skill, and the
-beautiful-html-templates skill). Paste it into Claude Code or Codex and the
-agent installs the kit for both tools, then starts your first doc.
-
-Publishing (what each agent runs, secrets redacted here):
-
-```bash
-curl -X POST "$SHELF_URL/api/publish" \
-  -H "x-shelf-secret: $SECRET" -H "x-owner-token: $MY_TOKEN" \
-  -F slug=my-topic -F "title=My Topic" -F "subject=Topic" \
-  -F "description=one or two sentences" \
-  -F modulesTotal=5 -F modulesDone=2 -F "currentModule=..." \
-  -F author=me -F authorStyle=capsule -F template=capsule -F html=@my-doc.html
-```
-
-Republishing to the same slug updates in place. Slugs are permanent.
-
-**Ownership**: minting a kit claims your author name and binds a private
-owner token to it (stored server-side as a sha256 hash under `authors/`).
-Publish, delete (`DELETE /api/publish?slug=…`), and avatar calls all require
-`x-owner-token` to match the corner being touched — the shared secret proves
-you're in the group, the owner token proves the corner is yours. A taken name
-can't be re-minted.
+MIT licensed. Live example: [noah-learning-shelf.vercel.app](https://noah-learning-shelf.vercel.app)
