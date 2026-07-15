@@ -24,17 +24,21 @@ export async function DELETE(request: Request): Promise<Response> {
   ).toLowerCase();
 
   if (!author) {
-    return json(400, { error: "no author — sign in (mint a kit) or pass ?author=" });
+    return json(400, { error: "缺少 author — 登录（生成工具包）或传入 ?author=" });
   }
 
   const secret = process.env.SHELF_SECRET;
   const hasSecret = Boolean(secret) && request.headers.get("x-shelf-secret") === secret;
   if (!hasSecret && !cookie) {
-    return json(401, { error: "not signed in and no x-shelf-secret header" });
+    return json(401, { error: "未登录且没有 x-shelf-secret 头部" });
   }
 
-  const owner = await verifyOwner(author, ownerTokenFrom(request, author));
-  if (!owner.ok) return json(owner.status, { error: owner.error });
+  // Admin override: shelf secret alone can remove any corner.
+  // Otherwise the caller must hold that author's owner token.
+  if (!hasSecret) {
+    const owner = await verifyOwner(author, ownerTokenFrom(request, author));
+    if (!owner.ok) return json(owner.status, { error: owner.error });
+  }
 
   const docs = (await listDocs()).filter(
     (d) => d.author.toLowerCase() === author,

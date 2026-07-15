@@ -16,17 +16,17 @@ const AUTHOR_PATTERN = /^[a-z0-9][a-z0-9-]{0,59}$/;
 export async function POST(request: Request): Promise<Response> {
   const secret = process.env.SHELF_SECRET;
   if (!secret) {
-    return json(500, { error: "server is missing SHELF_SECRET" });
+    return json(500, { error: "服务器缺少 SHELF_SECRET" });
   }
   if (request.headers.get("x-shelf-secret") !== secret) {
-    return json(401, { error: "bad or missing x-shelf-secret header" });
+    return json(401, { error: "x-shelf-secret 头部无效或缺失" });
   }
 
   let form: FormData;
   try {
     form = await request.formData();
   } catch {
-    return json(400, { error: "expected multipart form data" });
+    return json(400, { error: "需要 multipart 表单数据" });
   }
 
   const author = String(form.get("author") ?? "").toLowerCase();
@@ -34,7 +34,7 @@ export async function POST(request: Request): Promise<Response> {
   const style = String(form.get("style") ?? "plain").slice(0, 60);
 
   if (!AUTHOR_PATTERN.test(author)) {
-    return json(400, { error: "author must match " + String(AUTHOR_PATTERN) });
+    return json(400, { error: "author 必须匹配 " + String(AUTHOR_PATTERN) });
   }
 
   const owner = await verifyOwner(author, request.headers.get("x-owner-token") ?? "");

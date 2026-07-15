@@ -15,7 +15,7 @@ const slab = "'Zilla Slab', serif";
 
 type Lesson = { slug: string; subject: string };
 
-export function OwnerControls({ author, lessons }: { author: string; lessons: Lesson[] }) {
+export function OwnerControls({ author, authorName, lessons }: { author: string; authorName?: string; lessons: Lesson[] }) {
   const [confirm, setConfirm] = useState<
     | { kind: "lesson"; slug: string; subject: string }
     | { kind: "leave" }
@@ -35,7 +35,7 @@ export function OwnerControls({ author, lessons }: { author: string; lessons: Le
     const res = await fetch(url, { method: "DELETE" });
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      setError(data.error ?? "that didn't work — try again");
+      setError(data.error ?? "操作失败 — 请重试");
       setBusy(false);
       return;
     }
@@ -57,16 +57,16 @@ export function OwnerControls({ author, lessons }: { author: string; lessons: Le
         color: "#4A4139",
       }}
     >
-      <span>your corner ✎</span>
+      <span>你的角落 ✎</span>
       <button
         onClick={() =>
           (window.location.href = `claude://code/new?q=${encodeURIComponent(
-            "I want to add a new lesson to my learning shelf doc",
+            "我想在学习文档里添加新一课",
           )}`)
         }
         style={chip("#B2F2BB")}
       >
-        + add a lesson
+        + 添加一课
       </button>
       {lessons.map((l) => (
         <button
@@ -74,11 +74,11 @@ export function OwnerControls({ author, lessons }: { author: string; lessons: Le
           onClick={() => setConfirm({ kind: "lesson", slug: l.slug, subject: l.subject })}
           style={chip("#FFC9C9")}
         >
-          delete “{l.subject}”
+          删除「{l.subject}」
         </button>
       ))}
       <button onClick={() => setConfirm({ kind: "leave" })} style={chip("#E9ECEF")}>
-        leave the board
+        离开布告板
       </button>
 
       {/* portal: the paper wrapper is CSS-transformed, which would trap
@@ -125,13 +125,13 @@ export function OwnerControls({ author, lessons }: { author: string; lessons: Le
             />
             <p style={{ margin: 0, fontFamily: script, fontWeight: 700, fontSize: "26px", lineHeight: 1.15, color: ink }}>
               {confirm.kind === "lesson"
-                ? `tear down “${confirm.subject}”?`
-                : "leave the board?"}
+                ? `拆掉「${confirm.subject}」？`
+                : "离开布告板？"}
             </p>
             <p style={{ margin: "10px 0 0", fontFamily: slab, fontSize: "15px", lineHeight: 1.5, color: ink }}>
               {confirm.kind === "lesson"
-                ? "this unpins the doc from the shelf for good. your local source file survives, so you can republish later."
-                : `this tears down ${author}'s whole corner — every lesson, the polaroid, the claim on the name. there's no undo.`}
+                ? "这会从布告板上永久取下这篇文档。本地源文件不受影响，之后可以重新发布。"
+                : `这会拆掉 ${authorName || author} 的整个角落 — 所有笔记、照片和名字认领都会移除。无法撤销。`}
             </p>
             {error && (
               <p style={{ margin: "10px 0 0", fontFamily: slab, fontWeight: 600, fontSize: "14px", color: "#B23B3B" }}>
@@ -153,7 +153,7 @@ export function OwnerControls({ author, lessons }: { author: string; lessons: Le
                   cursor: busy ? "wait" : "pointer",
                 }}
               >
-                {busy ? "tearing down…" : confirm.kind === "lesson" ? "yes, delete it" : "yes, leave"}
+                {busy ? "正在拆除…" : confirm.kind === "lesson" ? "是的，删除" : "是的，离开"}
               </button>
               <button
                 onClick={() => setConfirm(null)}
@@ -168,7 +168,7 @@ export function OwnerControls({ author, lessons }: { author: string; lessons: Le
                   cursor: "pointer",
                 }}
               >
-                keep it
+                保留
               </button>
             </div>
           </div>

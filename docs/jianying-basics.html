@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>认识剪映 — 界面布局与基础操作 | 耕读</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Caveat+Brush&family=DM+Mono:wght@400;500&family=Noto+Serif+SC:wght@700;900&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ===== Reset ===== */
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+
+/* ===== Tokens ===== */
+:root{
+  --blue:#2C2CDC;
+  --blue-deep:#1B1BB0;
+  --orange:#F2A03A;
+  --orange-deep:#E89321;
+  --red:#E83A2A;
+  --red-deep:#B7281C;
+  --cream:#F4E9D6;
+  --paper:#F5F2EA;
+  --ink:#0E0E14;
+
+  --fd:"Noto Serif SC",serif;        /* display (CJK) */
+  --fa:"Alfa Slab One",serif;         /* display (Latin) */
+  --fb:"Noto Sans SC",sans-serif;     /* body (CJK) */
+  --fn:"Noto Sans SC",sans-serif;     /* label (CJK) */
+  --fm:"DM Mono",monospace;           /* label (Latin) */
+  --fs:"Caveat Brush",cursive;        /* script interrupt */
+}
+
+/* ===== Base ===== */
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--fb);
+  font-size:17px;
+  font-weight:500;
+  line-height:1.8;
+  -webkit-font-smoothing:antialiased;
+}
+.container{max-width:820px;margin:0 auto;padding:0 28px}
+
+/* ===== Grain overlay ===== */
+.grain{position:relative;overflow:hidden}
+.grain::before{
+  content:"";
+  position:absolute;inset:0;
+  pointer-events:none;z-index:0;
+  background-image:
+    radial-gradient(rgba(0,0,0,.06) 1px,transparent 1px),
+    radial-gradient(rgba(255,255,255,.05) 1px,transparent 1px);
+  background-size:3px 3px,5px 5px;
+  background-position:0 0,1px 2px;
+  mix-blend-mode:multiply;
+  opacity:.5;
+}
+.grain>*{position:relative;z-index:1}
+
+/* ===== Top bar ===== */
+.topbar{
+  background:var(--blue);
+  color:var(--cream);
+  border-bottom:6px solid var(--cream);
+  padding:14px 28px;
+  font-family:var(--fm);
+  font-size:12px;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  position:sticky;top:0;z-index:100;
+}
+
+/* ===== Blue section ===== */
+.blue-section{background:var(--blue);color:var(--cream)}
+.inset-frame{
+  border:6px solid var(--cream);
+  position:absolute;inset:20px;
+  pointer-events:none;z-index:0;
+}
+
+/* ===== Hero ===== */
+.hero{padding:72px 0 56px}
+.hero-label{
+  font-family:var(--fm);
+  font-size:13px;
+  letter-spacing:.22em;
+  text-transform:uppercase;
+  margin-bottom:28px;
+  color:var(--orange);
+}
+.hero-title{
+  font-family:var(--fd);
+  font-weight:900;
+  font-size:clamp(38px,8vw,68px);
+  line-height:1.15;
+  margin-bottom:14px;
+  text-shadow:4px 4px 0 var(--red),8px 8px 0 var(--red-deep);
+}
+.hero-subtitle{
+  font-family:var(--fb);
+  font-weight:500;
+  font-size:clamp(18px,3.5vw,26px);
+  line-height:1.4;
+  margin-bottom:36px;
+  opacity:.92;
+}
+
+/* Progress bar */
+.progress-row{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  margin-bottom:32px;
+}
+.progress-track{
+  flex:1;
+  height:14px;
+  background:var(--cream);
+  border:3px solid var(--ink);
+  overflow:hidden;
+}
+.progress-fill{
+  height:100%;
+  width:12.5%;
+  background:var(--orange);
+  border-right:3px solid var(--ink);
+}
+.progress-text{
+  font-family:var(--fm);
+  font-size:13px;
+  letter-spacing:.1em;
+  white-space:nowrap;
+}
+
+/* Copy buttons */
+.copy-row{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+}
+.copy-btn{
+  background:var(--orange);
+  color:var(--ink);
+  border:4px solid var(--ink);
+  padding:8px 20px;
+  font-family:var(--fm);
+  font-size:12px;
+  font-weight:500;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  cursor:pointer;
+  box-shadow:4px 4px 0 var(--red);
+  transition:transform .12s ease,box-shadow .12s ease;
+}
+.copy-btn:hover{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--red)}
+.copy-btn:active{transform:translate(4px,4px);box-shadow:0 0 0 var(--red)}
+
+/* ===== Section spacing ===== */
+.section{padding:64px 0}
+
+/* ===== Kicker ===== */
+.kicker{
+  font-family:var(--fm);
+  font-size:13px;
+  letter-spacing:.22em;
+  text-transform:uppercase;
+  color:var(--red);
+  margin-bottom:20px;
+  font-weight:500;
+}
+.blue-section .kicker{color:var(--orange)}
+
+/* ===== Section title ===== */
+.section-title{
+  font-family:var(--fd);
+  font-weight:900;
+  font-size:clamp(26px,5vw,42px);
+  line-height:1.2;
+  margin-bottom:28px;
+}
+.section-title.orange{
+  color:var(--orange);
+  text-shadow:3px 3px 0 var(--red),6px 6px 0 var(--red-deep);
+}
+
+/* ===== Lede ===== */
+.lede{
+  font-size:19px;
+  font-weight:500;
+  line-height:1.7;
+  border-left:4px solid var(--ink);
+  padding-left:24px;
+  margin-bottom:24px;
+}
+
+/* ===== Body text ===== */
+.body-text{
+  font-size:17px;
+  line-height:1.8;
+  margin-bottom:20px;
+}
+.body-text strong{font-weight:700}
+
+/* Script interrupt */
+.script-interrupt{
+  display:inline-block;
+  font-family:var(--fs);
+  font-size:36px;
+  color:var(--orange);
+  transform:rotate(-3deg);
+  margin:8px 0 4px 12px;
+  line-height:1;
+}
+
+/* ===== Diamond list ===== */
+.diamond-list{
+  list-style:none;
+  margin:24px 0;
+}
+.diamond-list li{
+  position:relative;
+  padding-left:36px;
+  margin-bottom:18px;
+  line-height:1.7;
+}
+.diamond-list li::before{
+  content:"";
+  position:absolute;
+  left:0;top:10px;
+  width:16px;height:16px;
+  background:var(--red);
+  border-radius:3px;
+  transform:rotate(45deg);
+}
+.blue-section .diamond-list li::before{background:var(--orange)}
+.diamond-list li strong{font-weight:700}
+
+/* ===== Interface mockup ===== */
+.interface-mockup{
+  display:grid;
+  grid-template-areas:
+    "toolbar toolbar toolbar"
+    "media preview properties"
+    "timeline timeline timeline";
+  grid-template-rows:48px minmax(160px,200px) 72px;
+  grid-template-columns:1fr 1.8fr 1fr;
+  gap:4px;
+  background:var(--ink);
+  border:6px solid var(--ink);
+  margin:32px 0 0;
+}
+.mock-region{
+  background:var(--paper);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family:var(--fn);
+  font-size:13px;
+  font-weight:500;
+  text-align:center;
+  cursor:pointer;
+  transition:background .25s ease,box-shadow .25s ease,transform .25s ease;
+  user-select:none;
+  padding:8px;
+}
+.mock-region[data-step="1"]{grid-area:toolbar}
+.mock-region[data-step="2"]{grid-area:media}
+.mock-region[data-step="3"]{grid-area:preview}
+.mock-region[data-step="4"]{grid-area:properties}
+.mock-region[data-step="5"]{grid-area:timeline}
+.mock-region.active{
+  background:var(--orange);
+  box-shadow:0 0 0 4px var(--red) inset;
+  transform:scale(1.03);
+  z-index:2;
+}
+
+/* Tour controls */
+.tour-controls{
+  display:flex;
+  gap:12px;
+  justify-content:center;
+  margin-top:20px;
+}
+.tour-btn{
+  background:var(--blue);
+  color:var(--cream);
+  border:4px solid var(--ink);
+  padding:8px 24px;
+  font-family:var(--fm);
+  font-size:13px;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  cursor:pointer;
+  box-shadow:4px 4px 0 var(--red);
+  transition:transform .12s ease,box-shadow .12s ease,opacity .2s ease;
+}
+.tour-btn:hover:not(:disabled){transform:translate(2px,2px);box-shadow:2px 2px 0 var(--red)}
+.tour-btn:active:not(:disabled){transform:translate(4px,4px);box-shadow:0 0 0 var(--red)}
+.tour-btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* Tour description */
+.tour-desc{
+  background:var(--paper);
+  border:5px solid var(--ink);
+  padding:24px 28px;
+  margin-top:20px;
+  min-height:90px;
+}
+.tour-desc-title{
+  font-family:var(--fd);
+  font-weight:900;
+  font-size:20px;
+  margin-bottom:8px;
+  color:var(--blue);
+}
+.tour-desc-text{
+  font-size:16px;
+  line-height:1.7;
+}
+
+/* ===== Compare panel ===== */
+.compare-panel{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:0;
+  border:6px solid var(--ink);
+  margin:28px 0;
+}
+.compare-side{
+  padding:28px 24px;
+}
+.compare-left{
+  background:var(--paper);
+  border-right:6px solid var(--ink);
+}
+.compare-right{
+  background:var(--blue);
+  color:var(--cream);
+}
+.compare-label{
+  font-family:var(--fm);
+  font-size:12px;
+  letter-spacing:.22em;
+  text-transform:uppercase;
+  padding-bottom:12px;
+  margin-bottom:16px;
+  border-bottom:4px solid var(--ink);
+  font-weight:500;
+}
+.compare-right .compare-label{
+  color:var(--orange);
+  border-bottom-color:var(--cream);
+}
+.compare-item{
+  margin-bottom:16px;
+  line-height:1.6;
+  font-size:15px;
+}
+.compare-item:last-child{margin-bottom:0}
+
+/* ===== Flip cards ===== */
+.flip-grid{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:16px;
+  margin-top:28px;
+}
+.flip-card{
+  perspective:1200px;
+  cursor:pointer;
+  height:130px;
+}
+.flip-card-inner{
+  position:relative;
+  width:100%;height:100%;
+  transition:transform .6s ease;
+  transform-style:preserve-3d;
+}
+.flip-card.flipped .flip-card-inner{transform:rotateY(180deg)}
+.flip-face{
+  position:absolute;inset:0;
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
+  border:5px solid var(--ink);
+  padding:22px 26px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+.flip-front{
+  background:var(--paper);
+}
+.flip-back{
+  background:var(--blue);
+  color:var(--cream);
+  transform:rotateY(180deg);
+}
+.flip-q{
+  font-family:var(--fd);
+  font-weight:700;
+  font-size:17px;
+  line-height:1.5;
+}
+.flip-hint{
+  font-family:var(--fm);
+  font-size:11px;
+  letter-spacing:.15em;
+  text-transform:uppercase;
+  color:var(--red);
+  margin-top:8px;
+}
+.flip-back .flip-hint{color:var(--orange)}
+.flip-a{
+  font-size:16px;
+  line-height:1.6;
+  font-weight:500;
+}
+
+/* ===== Next module teaser ===== */
+.next-module{padding:56px 0}
+.next-module .body-text{color:var(--cream);opacity:.92}
+.next-arrow{
+  font-family:var(--fa);
+  font-size:48px;
+  color:var(--orange);
+  text-shadow:3px 3px 0 var(--red);
+  line-height:1;
+  margin-top:16px;
+}
+
+/* ===== Orange ribbon footer ===== */
+.ribbon{
+  background:var(--orange);
+  color:var(--blue);
+  border-top:6px solid var(--ink);
+  padding:18px 0;
+  font-family:var(--fm);
+  font-size:13px;
+  letter-spacing:.22em;
+  text-transform:uppercase;
+  font-weight:600;
+  text-align:center;
+  overflow:hidden;
+  white-space:nowrap;
+}
+
+/* ===== Responsive ===== */
+@media(max-width:640px){
+  .interface-mockup{
+    grid-template-columns:1fr 1.5fr .8fr;
+    grid-template-rows:40px 140px 60px;
+  }
+  .mock-region{font-size:11px;padding:4px}
+  .compare-panel{grid-template-columns:1fr}
+  .compare-left{border-right:none;border-bottom:6px solid var(--ink)}
+  .topbar{font-size:10px;padding:10px 16px}
+  .hero{padding:48px 0 40px}
+  .section{padding:48px 0}
+}
+
+/* ===== AIGC watermark placeholder ===== */
+</style>
+</head>
+<body>
+
+<!-- ===== Top bar ===== -->
+<div class="topbar grain">
+  <span>耕读 · hugo 的学习笔记</span>
+  <span>剪映 / 模块 01</span>
+</div>
+
+<!-- ===== Hero ===== -->
+<section class="hero blue-section grain">
+  <div class="inset-frame"></div>
+  <div class="container">
+    <div class="hero-label">模块 01 / 08 · 剪映从入门到熟练</div>
+    <h1 class="hero-title">认识剪映</h1>
+    <p class="hero-subtitle">界面布局与基础操作</p>
+
+    <div class="progress-row">
+      <div class="progress-track">
+        <div class="progress-fill"></div>
+      </div>
+      <span class="progress-text">1 / 8</span>
+    </div>
+
+    <div class="copy-row">
+      <button class="copy-btn" id="copyHtmlBtn">复制 HTML</button>
+      <button class="copy-btn" id="copyMdBtn">复制 Markdown</button>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 为什么这一步最先学 ===== -->
+<section class="section grain">
+  <div class="container">
+    <div class="kicker">为什么这一步最先学</div>
+    <p class="lede">
+      剪辑的快慢，不取决于你有多少创意，而取决于你的手是否知道每个按钮在哪。
+    </p>
+    <p class="body-text">
+      专业剪辑师不看界面也能操作——那叫<strong>肌肉记忆</strong>。肌肉记忆的第一步，是把界面"地图"刻进脑子里。没有这张地图，每次操作都要先花两秒钟找按钮在哪；有了它，你的手会自己走到对的位置。
+    </p>
+    <p class="body-text">
+      剪映的界面看起来按钮很多，但实际上只有<strong>五个区域</strong>。认清这五个区域，你就拥有了导航能力——知道每个操作该去哪里找，也知道每个区域之间怎么配合。
+    </p>
+    <span class="script-interrupt">start here</span>
+  </div>
+</section>
+
+<!-- ===== 五个区域 ===== -->
+<section class="section grain" style="background:var(--cream)">
+  <div class="container">
+    <div class="kicker">五个区域</div>
+    <h2 class="section-title orange">界面地图</h2>
+    <p class="body-text">
+      剪映把屏幕分成五个功能区域，每个区域只负责一件事。用"下一步"按钮逐个认识它们，也可以直接点击图中任意区域跳转。
+    </p>
+
+    <!-- Interactive mockup -->
+    <div class="interface-mockup">
+      <div class="mock-region" data-step="1" id="region-1">顶部工具栏</div>
+      <div class="mock-region" data-step="2" id="region-2">媒体库</div>
+      <div class="mock-region" data-step="3" id="region-3">预览窗口</div>
+      <div class="mock-region" data-step="4" id="region-4">属性面板</div>
+      <div class="mock-region" data-step="5" id="region-5">时间线</div>
+    </div>
+
+    <div class="tour-controls">
+      <button class="tour-btn" id="prevBtn">上一步</button>
+      <button class="tour-btn" id="nextBtn">下一步</button>
+    </div>
+
+    <div class="tour-desc">
+      <div class="tour-desc-title" id="tourTitle">概览</div>
+      <div class="tour-desc-text" id="tourDesc">这是剪映的完整界面。点击"下一步"逐个认识每个区域，也可以直接点击图中任意区域。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 创建项目与导入素材 ===== -->
+<section class="section blue-section grain">
+  <div class="inset-frame"></div>
+  <div class="container">
+    <div class="kicker">动手操作</div>
+    <h2 class="section-title">创建项目与导入素材</h2>
+    <p class="body-text" style="color:var(--cream);opacity:.92">
+      认识了界面，现在来实际走一遍流程。从零开始创建一个项目并导入素材，只需要四步。
+    </p>
+
+    <ul class="diamond-list" style="color:var(--cream)">
+      <li><strong>打开剪映，点击「开始创作」</strong>——这是所有新项目的入口。</li>
+      <li><strong>在弹出的素材选择界面中，勾选你要用的视频或图片</strong>——可以一次选多个。</li>
+      <li><strong>点击「添加」</strong>——选中的素材会自动放到时间线上，第一个素材决定画幅比例。</li>
+      <li><strong>在项目内也可以随时点击「导入」</strong>——继续添加素材到媒体库，不一定一次全选完。</li>
+    </ul>
+
+    <p class="body-text" style="color:var(--orange);font-weight:700;margin-top:28px">
+      关键细节：想做竖屏视频，先导入一段竖屏素材。项目会自动匹配第一个素材的画幅比例。
+    </p>
+  </div>
+</section>
+
+<!-- ===== 常见误解 ===== -->
+<section class="section grain">
+  <div class="container">
+    <div class="kicker">常见误解</div>
+    <h2 class="section-title">新手容易踩的坑</h2>
+
+    <div class="compare-panel">
+      <div class="compare-side compare-left">
+        <div class="compare-label">错误理解</div>
+        <div class="compare-item">"时间线上的轨道顺序不重要，随便放就行。"</div>
+        <div class="compare-item">"导入素材后就不能改画幅比例了。"</div>
+        <div class="compare-item">"预览窗口看到的画面就是最终导出的画质。"</div>
+      </div>
+      <div class="compare-side compare-right">
+        <div class="compare-label">正确理解</div>
+        <div class="compare-item">上面的轨道会遮住下面的轨道。视频放下面，字幕和贴纸放上面。</div>
+        <div class="compare-item">可以随时改。在项目设置里调整比例，画幅不是锁死的。</div>
+        <div class="compare-item">如果预览画质设为「草稿」，画面会比较模糊，但导出时是清晰的。别被低清预览骗了。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 理解检查 ===== -->
+<section class="section grain" style="background:var(--cream)">
+  <div class="container">
+    <div class="kicker">理解检查</div>
+    <h2 class="section-title orange">你掌握了吗</h2>
+    <p class="body-text">
+      试着先自己回答，再点击卡片翻开答案。
+    </p>
+
+    <div class="flip-grid">
+      <div class="flip-card">
+        <div class="flip-card-inner">
+          <div class="flip-face flip-front">
+            <div class="flip-q">剪映界面有哪五个功能区域？</div>
+            <div class="flip-hint">点击翻开答案</div>
+          </div>
+          <div class="flip-face flip-back">
+            <div class="flip-a">顶部工具栏、媒体库、预览窗口、属性面板、时间线。记忆口诀：工具在顶、素材在左、预览在中、属性在右、时间线在底。</div>
+            <div class="flip-hint">点击翻回问题</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flip-card">
+        <div class="flip-card-inner">
+          <div class="flip-face flip-front">
+            <div class="flip-q">想做竖屏视频，第一步应该怎么做？</div>
+            <div class="flip-hint">点击翻开答案</div>
+          </div>
+          <div class="flip-face flip-back">
+            <div class="flip-a">先导入一段竖屏素材（比如手机拍的竖屏视频）。项目会自动匹配第一个素材的画幅比例。如果已经建了横屏项目，也可以在项目设置里改成 9:16。</div>
+            <div class="flip-hint">点击翻回问题</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flip-card">
+        <div class="flip-card-inner">
+          <div class="flip-face flip-front">
+            <div class="flip-q">时间线上面的轨道和下面的轨道，谁遮住谁？</div>
+            <div class="flip-hint">点击翻开答案</div>
+          </div>
+          <div class="flip-face flip-back">
+            <div class="flip-a">上面的轨道遮住下面的轨道。就像图层一样——视频片段放在下面的轨道，字幕、贴纸、特效叠放在上面的轨道。这和 Photoshop 的图层逻辑一样。</div>
+            <div class="flip-hint">点击翻回问题</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 下一模块预告 ===== -->
+<section class="next-module blue-section grain">
+  <div class="inset-frame"></div>
+  <div class="container">
+    <div class="kicker">下一模块</div>
+    <h2 class="section-title">时间线与基础剪辑</h2>
+    <p class="body-text">
+      界面地图刻进脑子里了，接下来进入真正的剪辑——学习在时间线上分割片段、裁剪多余部分、重新排列顺序。那是把一堆素材变成一个视频的开始。
+    </p>
+    <div class="next-arrow">→</div>
+  </div>
+</section>
+
+<!-- ===== Ribbon footer ===== -->
+<div class="ribbon grain">
+  耕读 · hugo · 剪映从入门到熟练 · 模块 01 / 08 · 耕读 · hugo · 剪映从入门到熟练 · 模块 01 / 08 ·
+</div>
+
+<!-- ===== Embedded Markdown ===== -->
+<script type="text/markdown" id="doc-markdown">
+# 认识剪映 — 界面布局与基础操作
+
+> 模块 1 / 8 · 剪映从入门到熟练
+
+## 为什么这一步最先学
+
+剪辑的快慢，不取决于你有多少创意，而取决于你的手是否知道每个按钮在哪。专业剪辑师不看界面也能操作——那叫肌肉记忆。肌肉记忆的第一步，是把界面"地图"刻进脑子里。
+
+剪映的界面看起来按钮很多，但实际上只有五个区域。认清这五个区域，你就拥有了导航能力。
+
+## 五个区域
+
+剪映把屏幕分成五个功能区域，每个区域只负责一件事：
+
+1. **顶部工具栏** — 导入素材、导出成品、撤销重做等全局操作
+2. **媒体库** — 你导入的所有素材存放的地方，拖到时间线即可使用
+3. **预览窗口** — 实时预览画面，播放、暂停、逐帧查看
+4. **属性面板** — 选中片段后调整参数（缩放、旋转、不透明度等）
+5. **时间线** — 所有剪辑操作的核心，片段按顺序排列
+
+五个区域之间的协作关系：在媒体库选素材 → 拖到时间线 → 在时间线上选中片段 → 在属性面板调整参数 → 在预览窗口看效果。
+
+## 创建项目与导入素材
+
+1. 打开剪映，点击「开始创作」
+2. 在弹出的素材选择界面中，勾选你要用的视频或图片
+3. 点击「添加」——素材会自动放到时间线上
+4. 在项目内也可以随时点击「导入」继续添加素材
+
+关键细节：想做竖屏视频，先导入一段竖屏素材。项目会自动匹配第一个素材的画幅比例。
+
+## 常见误解
+
+- **"时间线上的轨道顺序不重要"** — 重要。上面的轨道会遮住下面的轨道。视频放下面，字幕和贴纸放上面。
+- **"导入素材后就不能改画幅了"** — 可以改。在项目设置里随时调整比例。
+- **"预览窗口的画面就是最终画面"** — 不一定。如果预览画质设为「草稿」，画面会比较模糊，但导出时是清晰的。
+
+## 理解检查
+
+1. 剪映界面有哪五个功能区域？
+   → 顶部工具栏、媒体库、预览窗口、属性面板、时间线
+
+2. 想做竖屏视频，第一步应该怎么做？
+   → 先导入一段竖屏素材，项目会自动匹配画幅比例
+
+3. 时间线上面的轨道和下面的轨道，谁遮住谁？
+   → 上面的轨道遮住下面的。视频在下，字幕贴纸在上
+
+## 下一步
+
+界面认识完了，下一模块进入时间线——学习分割、裁剪、排列片段，把素材变成一个真正的视频。
+</script>
+
+<!-- ===== JavaScript ===== -->
+<script>
+// ===== Interface tour =====
+const tourSteps = [
+  {
+    title: '概览',
+    desc: '这是剪映的完整界面。点击"下一步"逐个认识每个区域，也可以直接点击图中任意区域。',
+    activeRegion: null
+  },
+  {
+    title: '顶部工具栏',
+    desc: '导入素材、导出成品、撤销重做等全局操作都在这里。你每次打开剪映第一个看到的就是它。最常用的按钮是左上角的"导入"和右上角的"导出"。',
+    activeRegion: 1
+  },
+  {
+    title: '媒体库',
+    desc: '你导入的所有视频、图片、音频都存放在这里。把素材从这里拖到时间线上就可以开始剪辑。媒体库是你的"原料仓库"。',
+    activeRegion: 2
+  },
+  {
+    title: '预览窗口',
+    desc: '实时预览你的剪辑效果。可以播放、暂停、逐帧查看画面。你在时间线上做的每一个改动，都会在这里反映出来。这是你的"监视器"。',
+    activeRegion: 3
+  },
+  {
+    title: '属性面板',
+    desc: '选中时间线上的片段后，这里会显示缩放、旋转、不透明度、位置等参数。不选中片段时这里是空的——这是新手最常犯的错：没选中片段就到处找参数面板。',
+    activeRegion: 4
+  },
+  {
+    title: '时间线',
+    desc: '你所有剪辑操作的核心战场。片段按顺序排列在轨道上，可以分割、拖拽、叠加。上面轨道的内容会遮住下面轨道的内容。这和 Photoshop 的图层逻辑一样。',
+    activeRegion: 5
+  }
+];
+
+let currentStep = 0;
+
+function updateTour() {
+  var step = tourSteps[currentStep];
+  document.getElementById('tourTitle').textContent = step.title;
+  document.getElementById('tourDesc').textContent = step.desc;
+  document.querySelectorAll('.mock-region').forEach(function(r) {
+    r.classList.remove('active');
+  });
+  if (step.activeRegion) {
+    var region = document.getElementById('region-' + step.activeRegion);
+    if (region) region.classList.add('active');
+  }
+  document.getElementById('prevBtn').disabled = currentStep === 0;
+  document.getElementById('nextBtn').disabled = currentStep === tourSteps.length - 1;
+}
+
+document.getElementById('nextBtn').addEventListener('click', function() {
+  if (currentStep < tourSteps.length - 1) {
+    currentStep++;
+    updateTour();
+  }
+});
+
+document.getElementById('prevBtn').addEventListener('click', function() {
+  if (currentStep > 0) {
+    currentStep--;
+    updateTour();
+  }
+});
+
+document.querySelectorAll('.mock-region').forEach(function(region) {
+  region.addEventListener('click', function() {
+    var step = parseInt(region.dataset.step);
+    currentStep = step;
+    updateTour();
+  });
+});
+
+// ===== Flip cards =====
+document.querySelectorAll('.flip-card').forEach(function(card) {
+  card.addEventListener('click', function() {
+    card.classList.toggle('flipped');
+  });
+});
+
+// ===== Copy buttons =====
+document.getElementById('copyHtmlBtn').addEventListener('click', function() {
+  var self = this;
+  navigator.clipboard.writeText('<!doctype html>\n' + document.documentElement.outerHTML).then(function() {
+    self.textContent = '已复制 ✓';
+    setTimeout(function() { self.textContent = '复制 HTML'; }, 2000);
+  });
+});
+
+document.getElementById('copyMdBtn').addEventListener('click', function() {
+  var self = this;
+  navigator.clipboard.writeText(document.getElementById('doc-markdown').textContent.trim()).then(function() {
+    self.textContent = '已复制 ✓';
+    setTimeout(function() { self.textContent = '复制 Markdown'; }, 2000);
+  });
+});
+
+// ===== Initialize =====
+updateTour();
+</script>
+
+</body>
+</html>

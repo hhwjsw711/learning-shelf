@@ -61,18 +61,22 @@ export default async function ShelfPage() {
   const interestsByAuthor = new Map<string, string>();
   const claimedAt = new Map<string, string>();
   const streaks = new Map<string, number>();
+  const nameByAuthor = new Map<string, string>();
   await Promise.all(
     groups.map(async (g) => {
       const a = g.author.toLowerCase();
       const record = await getAuthorRecord(a);
       if (!record) return;
+      if (record.name) {
+        nameByAuthor.set(a, record.name);
+        g.name = record.name;
+      }
       if (record.createdAt) {
         claimedAt.set(a, record.createdAt);
         joinedSince.set(
           a,
           new Date(record.createdAt)
-            .toLocaleString("en-US", { month: "short", year: "numeric" })
-            .toLowerCase(),
+            .toLocaleString("zh-CN", { month: "short", year: "numeric" })
         );
       }
       if (record.interests) interestsByAuthor.set(a, record.interests);
@@ -91,8 +95,8 @@ export default async function ShelfPage() {
   if (deepest?.wordCount > 0) {
     awards.push({
       emoji: "🦑",
-      title: "deepest dive",
-      line: `${deepest.subject.toLowerCase()} — ${deepest.author.toLowerCase()}, ${Math.round(deepest.wordCount / 1000)}k words down`,
+      title: "钻得最深",
+      line: `${deepest.subject.toLowerCase()} — ${nameByAuthor.get(deepest.author.toLowerCase()) || deepest.author.toLowerCase()}，${Math.round(deepest.wordCount / 1000)}k 字`,
     });
   }
   const freshest = [...docs].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0];
@@ -100,16 +104,16 @@ export default async function ShelfPage() {
     const daysAgo = Math.floor((Date.now() - new Date(freshest.updatedAt).getTime()) / 86400000);
     awards.push({
       emoji: "✎",
-      title: "freshest ink",
-      line: `${freshest.author.toLowerCase()} — ${daysAgo === 0 ? "today" : daysAgo === 1 ? "yesterday" : `${daysAgo} days ago`}`,
+      title: "最新墨迹",
+      line: `${nameByAuthor.get(freshest.author.toLowerCase()) || freshest.author.toLowerCase()} — ${daysAgo === 0 ? "今天" : daysAgo === 1 ? "昨天" : `${daysAgo} 天前`}`,
     });
   }
   const hotStreak = [...streaks.entries()].sort((x, y) => y[1] - x[1])[0];
   if (hotStreak && hotStreak[1] >= 2) {
     awards.push({
       emoji: "🔥",
-      title: "longest streak",
-      line: `${hotStreak[0]} — ${hotStreak[1]} days straight`,
+      title: "最长连击",
+      line: `${nameByAuthor.get(hotStreak[0]) || hotStreak[0]} — 连续 ${hotStreak[1]} 天`,
     });
   }
   const counts = new Map<string, number>();
@@ -118,17 +122,17 @@ export default async function ShelfPage() {
   if (prolific && prolific[1] > 1) {
     awards.push({
       emoji: "📌",
-      title: "most notes pinned",
-      line: `${prolific[0]} — ${prolific[1]} on the board`,
+      title: "便签最多",
+      line: `${nameByAuthor.get(prolific[0]) || prolific[0]} — 板上有 ${prolific[1]} 篇`,
     });
   }
   const totalWords = docs.reduce((s, d) => s + (d.wordCount || 0), 0);
-  const collective = `together: ${Math.round(totalWords / 1000)}k words across ${docs.length} dive${docs.length === 1 ? "" : "s"}, ${groups.length} corner${groups.length === 1 ? "" : "s"} ✎`;
+  const collective = `合计：${Math.round(totalWords / 1000)}k 字 · ${docs.length} 篇笔记 · ${groups.length} 个角落 ✎`;
   // Members who announced themselves but haven't published yet get an empty
   // corner at the end of the board, already wearing their chosen design.
   for (const member of joined) {
     if (!groups.some((g) => g.author.toLowerCase() === member.author)) {
-      groups.push({ author: member.author, authorStyle: member.style, docs: [] });
+      groups.push({ author: member.author, authorStyle: member.style, docs: [], name: member.name || member.author });
     }
   }
 
@@ -161,9 +165,8 @@ export default async function ShelfPage() {
                 transform: "rotate(-1.2deg)",
               }}
             >
-              Learning Shelf
+              耕读
             </h1>
-            <GithubStarSticky />
           </div>
           <p
             style={{
@@ -175,7 +178,7 @@ export default async function ShelfPage() {
               transform: "rotate(-1deg)",
             }}
           >
-            what we&apos;re learning lately ✎
+            最近在学什么 ✎
           </p>
 
           {/* a short yellow sticky + the invite sticky, side by side */}
@@ -192,8 +195,7 @@ export default async function ShelfPage() {
             >
               <Pin fill={pinFills[0]} />
               <p style={{ margin: 0, fontFamily: slab, fontSize: "17px", lineHeight: 1.5 }}>
-                our little group of friends, pinning up whatever we&apos;re
-                learning. our claudes keep the notes.
+                我们这群朋友，钉上各自正在学的一切。笔记由 AI 代理来维护。
               </p>
             </div>
             <a
@@ -211,10 +213,10 @@ export default async function ShelfPage() {
             >
               <Pin fill={pinFills[3]} />
               <span style={{ display: "block", fontFamily: display, fontSize: "20px", lineHeight: 1.1 }}>
-                join the shelf
+                加入布告板
               </span>
               <span style={{ display: "block", marginTop: "4px", fontFamily: script, fontWeight: 600, fontSize: "18px" }}>
-                got the password? grab your kit ✂
+                有密码？领取你的工具包 ✂
               </span>
             </a>
             {/* members only (needs the kit's skills installed) + desktop
@@ -227,7 +229,7 @@ export default async function ShelfPage() {
           {groups.length > 0 && (
             <nav style={{ display: "flex", gap: "14px", flexWrap: "wrap", alignItems: "center", marginTop: "30px" }}>
               <span style={{ fontFamily: script, fontWeight: 700, fontSize: "22px", color: "#3B2F21" }}>
-                jump to a corner →
+                跳到角落 →
               </span>
               {groups.map((g, i) => (
                 <a
@@ -246,7 +248,7 @@ export default async function ShelfPage() {
                     transform: `rotate(${i % 2 === 0 ? "-2deg" : "2deg"})`,
                   }}
                 >
-                  {g.author.toLowerCase()} · {g.docs.length}
+                  {g.name || g.author.toLowerCase()} · {g.docs.length}
                 </a>
               ))}
             </nav>
@@ -261,6 +263,7 @@ export default async function ShelfPage() {
               key={group.author}
               index={i}
               author={group.author.toLowerCase()}
+              authorName={group.name || group.author}
               isOwner={group.author.toLowerCase() === boardOwner}
               streak={streaks.get(group.author.toLowerCase()) ?? 0}
               tint={TOKENS_BY_ID[group.authorStyle]?.accent}
@@ -269,7 +272,7 @@ export default async function ShelfPage() {
                 avatarAuthors.has(group.author.toLowerCase())
                   ? {
                       src: `/a/${group.author.toLowerCase()}`,
-                      name: group.author,
+                      name: group.name || group.author,
                       since: joinedSince.get(group.author.toLowerCase()),
                     }
                   : undefined
@@ -279,6 +282,7 @@ export default async function ShelfPage() {
               {viewer === group.author.toLowerCase() && (
                 <OwnerControls
                   author={group.author.toLowerCase()}
+                  authorName={group.name || group.author}
                   lessons={group.docs.map((d) => ({ slug: d.slug, subject: d.subject }))}
                 />
               )}
@@ -304,9 +308,9 @@ export default async function ShelfPage() {
           }}
         >
           <span style={{ transform: "rotate(-0.8deg)" }}>
-            new here? tap “join the shelf” and grab your kit ✎
+            新来的？点「加入布告板」领取你的工具包 ✎
           </span>
-          <span style={{ transform: "rotate(0.6deg)" }}>docs are living — they change as we learn ★</span>
+          <span style={{ transform: "rotate(0.6deg)" }}>文档是活的 — 随学习而更新 ★</span>
         </footer>
       </div>
     </main>
@@ -324,6 +328,7 @@ function PinnedPage({
   tint,
   interests,
   author,
+  authorName,
   isOwner,
   streak = 0,
   children,
@@ -333,6 +338,7 @@ function PinnedPage({
   tint?: string;
   interests?: string;
   author?: string;
+  authorName?: string;
   isOwner?: boolean;
   streak?: number;
   children: ReactNode;
@@ -349,11 +355,11 @@ function PinnedPage({
       {/* the author's polaroid, overlapping the paper's top-right corner */}
       {avatar && <Polaroid src={avatar.src} name={avatar.name} since={avatar.since} index={index} />}
       {/* what they're into — a living line their agent rewrites per publish */}
-      {interests && author && <InterestsTag author={author} interests={interests} index={index} />}
+      {interests && author && <InterestsTag author={author} authorName={authorName} interests={interests} index={index} />}
       {/* a lit flame on the paper's bottom edge while a publish streak lives */}
       {streak >= 2 && (
         <div
-          title={`${author} has published ${streak} days straight`}
+          title={`${authorName || author} 已连续发布 ${streak} 天`}
           style={{
             position: "absolute",
             bottom: "-13px",
@@ -371,14 +377,14 @@ function PinnedPage({
             whiteSpace: "nowrap",
           }}
         >
-          🔥 {streak}-day streak
+          🔥 连续 {streak} 天
         </div>
       )}
       {/* masking tape across the top — on the board owner's paper, someone
           has written on it in sharpie (zero-setup: first corner claimed
           runs the board) */}
       <div
-        aria-label={isOwner ? `${author} runs this board` : undefined}
+        aria-label={isOwner ? `${authorName || author} 是这块板的主人` : undefined}
         aria-hidden={!isOwner}
         style={{
           position: "absolute",
@@ -407,7 +413,7 @@ function PinnedPage({
               transform: "rotate(-0.5deg)",
             }}
           >
-            runs this board
+            板主
           </span>
         )}
       </div>
@@ -480,12 +486,12 @@ function EmptyCorner({ index, lonely }: { index: number; lonely: boolean }) {
         }}
       >
         <p style={{ margin: 0, fontFamily: display, fontSize: "clamp(26px,3.4vw,38px)", lineHeight: 1, color: "#FBF7EE", textShadow: "2px 2px 0 rgba(45,42,38,0.4)" }}>
-          {lonely ? "the board's empty" : "an empty spot"}
+          {lonely ? "布告板空着" : "一个空位"}
         </p>
         <p style={{ margin: 0, fontFamily: script, fontWeight: 600, fontSize: "22px", color: "#3B2F21", maxWidth: "34ch" }}>
           {lonely
-            ? "be the first to claim a corner and pin what you're learning."
-            : "room for another corner — grab a kit and claim it."}
+            ? "成为第一个认领角落、钉上你正在学的内容的人。"
+            : "还留着一个角落 — 领个工具包来认领。"}
         </p>
         <a
           href="/invite"
@@ -501,7 +507,7 @@ function EmptyCorner({ index, lonely }: { index: number; lonely: boolean }) {
             transform: "rotate(-1deg)",
           }}
         >
-          join the shelf ✂
+          加入布告板 ✂
         </a>
       </div>
       <Pin fill="radial-gradient(circle at 30% 30%, #ffd43b, #f59f00)" style={{ left: "28px", top: "-9px", transform: "none", zIndex: 6 }} />
@@ -517,7 +523,7 @@ function GithubStarSticky() {
       href="https://github.com/noahgsolomon/learning-shelf"
       target="_blank"
       rel="noopener noreferrer"
-      aria-label="Star Learning Shelf on GitHub"
+      aria-label="在 GitHub 上给耕读点星"
       style={{
         position: "absolute",
         right: "-18px",
@@ -601,6 +607,7 @@ function groupByAuthor(docs: DocMeta[]): AuthorGroup[] {
     const sorted = [...bucket].sort((a, b) =>
       b.updatedAt.localeCompare(a.updatedAt),
     );
+    const a = sorted[0].author.toLowerCase();
     return {
       author: sorted[0].author,
       authorStyle: sorted[0].authorStyle,

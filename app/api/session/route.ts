@@ -4,7 +4,7 @@
 // the board. For members whose kits predate the cookie, or a new browser.
 
 import { ownerCookieHeader, verifyOwner } from "@/lib/owner";
-import { getAuthorRecord } from "@/lib/store";
+import { getAuthorRecord, listJoinedAuthors } from "@/lib/store";
 
 export async function GET(request: Request): Promise<Response> {
   const url = new URL(request.url);
@@ -24,18 +24,30 @@ export async function GET(request: Request): Promise<Response> {
         });
 
   if (!author || !token) {
-    return fail(400, "need your name and your owner token (both are in your kit)");
+    return fail(400, "需要你的名字和 owner token（都在你的工具包里）");
   }
 
-  // Unlike the write routes, refuse unclaimed authors here — a sign-in must
-  // never claim a name as a side effect.
-  const record = await getAuthorRecord(author);
+  // The "author" param may be the author slug (hex) or the display name.
+  // Try direct slug lookup first; if that fails, search by name (the sign-in
+  // form sends the user's name, not their random hex slug).
+  let resolvedAuthor = author;
+  let record = await getAuthorRecord(author);
   if (!record) {
-    return fail(404, `no member named "${author}" on this board`);
+    const joined = await listJoinedAuthors();
+    const match = joined.find(
+      (j) => j.name.toLowerCase() === author,
+    );
+    if (match) {
+      resolvedAuthor = match.author;
+      record = await getAuthorRecord(resolvedAuthor);
+    }
   }
-  const owner = await verifyOwner(author, token);
+  if (!record) {
+    return fail(404, "没有找到这个成员 — 检查名字和密钥是否正确");
+  }
+  const owner = await verifyOwner(resolvedAuthor, token);
   if (!owner.ok) {
-    return fail(403, "that token doesn't match — check the x-owner-token line in your learning-shelf SKILL.md");
+    return fail(403, "密钥不匹配 — 检查你 learning-shelf SKILL.md 里的 x-owner-token 那一行");
   }
 
   if (wantsJson) {
@@ -43,7 +55,7 @@ export async function GET(request: Request): Promise<Response> {
       status: 200,
       headers: {
         "content-type": "application/json",
-        "set-cookie": ownerCookieHeader(author, token),
+        "set-cookie": ownerCookieHeader(resolvedAuthor, token),
       },
     });
   }
@@ -51,7 +63,7 @@ export async function GET(request: Request): Promise<Response> {
     status: 302,
     headers: {
       location: "/",
-      "set-cookie": ownerCookieHeader(author, token),
+      "set-cookie": ownerCookieHeader(resolvedAuthor, token),
     },
   });
 }

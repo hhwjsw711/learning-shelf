@@ -64,7 +64,7 @@ export async function GET(): Promise<Response> {
   const authors = new Set(docs.map((d) => d.author.toLowerCase()));
   for (const j of joined) authors.add(j.author);
   const words = docs.reduce((sum, d) => sum + (d.wordCount || 0), 0);
-  const stats = `${docs.length} living doc${docs.length === 1 ? "" : "s"} · ${authors.size} corner${authors.size === 1 ? "" : "s"} · ${Math.round(words / 1000)}k words deep`;
+  const stats = `${docs.length} 篇活笔记 · ${authors.size} 个角落 · ${Math.round(words / 1000)}k 字`;
 
   return new ImageResponse(
     (
@@ -96,7 +96,7 @@ export async function GET(): Promise<Response> {
               lineHeight: 1,
             }}
           >
-            Learning Shelf
+            耕读
           </div>
           <div
             style={{
@@ -107,7 +107,7 @@ export async function GET(): Promise<Response> {
               marginLeft: 8,
             }}
           >
-            what we&apos;re learning lately ✏️
+            最近在学什么 ✏️
           </div>
         </div>
 
@@ -134,8 +134,7 @@ export async function GET(): Promise<Response> {
                 lineHeight: 1.4,
               }}
             >
-              our little group of friends, pinning up whatever we&apos;re
-              learning. our claudes keep the notes.
+              我们这群朋友，钉上各自正在学的一切。笔记由 AI 代理来维护。
             </div>
           </div>
 
@@ -153,10 +152,10 @@ export async function GET(): Promise<Response> {
           >
             <Pin color="#f59f00" />
             <div style={{ fontFamily: "Shrikhand", fontSize: 34, color: ink, lineHeight: 1.1 }}>
-              join the shelf
+              加入布告板
             </div>
             <div style={{ fontFamily: "Caveat", fontSize: 30, color: ink, marginTop: 6 }}>
-              got the password? grab your kit ✂
+              有密码？领取你的工具包 ✂
             </div>
           </div>
         </div>

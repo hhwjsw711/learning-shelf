@@ -47,17 +47,17 @@ export function PagedPanel({ group }: { group: AuthorGroup }) {
           disabled={page === 0}
           style={arrow(page === 0)}
         >
-          ← newer
+          ← 较新
         </button>
         <span>
-          page {page + 1} of {pages} · {group.docs.length} notes
+          第 {page + 1} / {pages} 页 · {group.docs.length} 篇笔记
         </span>
         <button
           onClick={() => setPage(Math.min(pages - 1, page + 1))}
           disabled={page === pages - 1}
           style={arrow(page === pages - 1)}
         >
-          older →
+          较旧 →
         </button>
       </div>
     </>

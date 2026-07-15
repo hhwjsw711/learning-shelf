@@ -19,7 +19,7 @@ const noteShadow = "2px 3px 15px rgba(45,42,38,0.22), 0 1px 3px rgba(45,42,38,0.
 export function LetsLearn() {
   const [topic, setTopic] = useState("");
 
-  const prompt = `I want to learn about ${topic.trim() || "____"}`;
+  const prompt = `我想学习${topic.trim() || "____"}`;
   const ready = topic.trim().length > 0;
 
   function open(scheme: "claude" | "codex") {
@@ -62,10 +62,10 @@ export function LetsLearn() {
         }}
       />
       <span style={{ display: "block", fontFamily: display, fontSize: "20px", lineHeight: 1.1 }}>
-        let&apos;s learn
+        来学习吧
       </span>
       <label style={{ display: "block", marginTop: "8px", fontFamily: script, fontWeight: 600, fontSize: "19px" }}>
-        I want to learn about{" "}
+        我想学
         <input
           value={topic}
           onChange={(e) => setTopic(e.target.value)}
@@ -87,10 +87,10 @@ export function LetsLearn() {
       </label>
       <div style={{ display: "flex", gap: "10px", marginTop: "12px", flexWrap: "wrap" }}>
         <button onClick={() => open("claude")} disabled={!ready} style={btn("#FFFDF5", ready)}>
-          <ClaudeMark /> learn with claude
+          <ClaudeMark /> 用 Claude 学
         </button>
         <button onClick={() => open("codex")} disabled={!ready} style={btn("#FFFDF5", ready)}>
-          <CodexMark /> learn with codex
+          <CodexMark /> 用 Codex 学
         </button>
       </div>
     </div>

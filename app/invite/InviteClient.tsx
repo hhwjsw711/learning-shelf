@@ -14,7 +14,7 @@ const script = "'Caveat', cursive";
 const slab = "'Zilla Slab', serif";
 const noteShadow = "2px 3px 15px rgba(45,42,38,0.22), 0 1px 3px rgba(45,42,38,0.28)";
 
-export function InviteClient({ viewer }: { viewer: string | null }) {
+export function InviteClient({ viewer, viewerName }: { viewer: string | null; viewerName?: string | null }) {
   const [name, setName] = useState("");
   const [style, setStyle] = useState(STYLE_TOKENS[0].id);
   const [password, setPassword] = useState("");
@@ -29,7 +29,7 @@ export function InviteClient({ viewer }: { viewer: string | null }) {
     setError(null);
     if (!f) return;
     if (!f.type.startsWith("image/")) {
-      setError("that doesn't look like an image");
+      setError("这看起来不像图片");
       return;
     }
     if (f.size <= 3.5 * 1024 * 1024) {
@@ -47,7 +47,7 @@ export function InviteClient({ viewer }: { viewer: string | null }) {
       if (!blob) throw new Error("no blob");
       setPhoto(new File([blob], f.name.replace(/\.\w+$/, "") + ".jpg", { type: "image/jpeg" }));
     } catch {
-      setError("couldn't read that image — try a different file");
+      setError("无法读取这张图片 — 换一个试试");
     }
   }
   const [installer, setInstaller] = useState<string | null>(null);
@@ -68,7 +68,7 @@ export function InviteClient({ viewer }: { viewer: string | null }) {
     const res = await fetch("/api/invite", { method: "POST", body: form });
     const data = await res.json();
     if (!res.ok) {
-      setError(data.error ?? "something went wrong");
+      setError(data.error ?? "出错了");
       setInstaller(null);
     } else {
       setInstaller(data.installer ?? null);
@@ -107,14 +107,14 @@ export function InviteClient({ viewer }: { viewer: string | null }) {
   // A browser that already claimed a corner (owner cookie present) doesn't
   // get to mint another — it sees its own kit again instead.
   if (viewer && !installer) {
-    return <AlreadyOnBoard viewer={viewer} />;
+    return <AlreadyOnBoard viewer={viewer} viewerName={viewerName} />;
   }
 
   return (
     <main style={{ minHeight: "100vh", color: ink, padding: "0 clamp(18px, 4vw, 48px)" }}>
       <div style={{ maxWidth: "760px", margin: "0 auto", padding: "56px 0 72px" }}>
         <a href="/" style={{ fontFamily: script, fontWeight: 700, fontSize: "22px", color: "#3B2F21", textDecoration: "none" }}>
-          ← back to the board
+          ← 回到布告板
         </a>
 
         <h1
@@ -129,7 +129,7 @@ export function InviteClient({ viewer }: { viewer: string | null }) {
             transform: "rotate(-1deg)",
           }}
         >
-          claim your corner
+          认领你的角落
         </h1>
 
         {/* the form, on a green sticky */}
@@ -145,13 +145,13 @@ export function InviteClient({ viewer }: { viewer: string | null }) {
         >
           <span aria-hidden style={{ position: "absolute", top: "-8px", left: "50%", transform: "translateX(-50%)", width: "16px", height: "16px", borderRadius: "50%", background: "radial-gradient(circle at 30% 30%, #ff6b6b, #c92a2a)", boxShadow: "0 2px 4px rgba(45,42,38,0.5), inset -2px -2px 4px rgba(0,0,0,0.2)" }} />
           <label style={{ display: "block", fontFamily: script, fontWeight: 700, fontSize: "24px", marginBottom: "8px" }}>
-            what&apos;s your name?
+            你叫什么名字？
           </label>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && mint()}
-            placeholder="your first name"
+            placeholder="你的名字"
             style={{
               width: "100%",
               boxSizing: "border-box",
@@ -165,14 +165,14 @@ export function InviteClient({ viewer }: { viewer: string | null }) {
             }}
           />
           <label style={{ display: "block", fontFamily: script, fontWeight: 700, fontSize: "24px", margin: "18px 0 8px" }}>
-            the shelf password
+            布告板密码
           </label>
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && mint()}
-            placeholder="the one a friend gave you"
+            placeholder="朋友给你的那个"
             style={{
               width: "100%",
               boxSizing: "border-box",
@@ -186,7 +186,7 @@ export function InviteClient({ viewer }: { viewer: string | null }) {
             }}
           />
           <label style={{ display: "block", fontFamily: script, fontWeight: 700, fontSize: "24px", margin: "18px 0 10px" }}>
-            your corner&apos;s design? — tap one
+            你的角落用什么风格？ — 点一个
           </label>
           <div
             style={{
@@ -232,8 +232,8 @@ export function InviteClient({ viewer }: { viewer: string | null }) {
             })}
           </div>
           <label style={{ display: "block", fontFamily: script, fontWeight: 700, fontSize: "24px", margin: "18px 0 10px" }}>
-            a photo for your polaroid?{" "}
-            <span style={{ fontSize: "0.75em", fontWeight: 600, opacity: 0.75 }}>— optional, square looks best</span>
+            要放一张大头照吗？{" "}
+            <span style={{ fontSize: "0.75em", fontWeight: 600, opacity: 0.75 }}>— 可选，方形最好看</span>
           </label>
           <div
             onDragOver={(e) => {
@@ -272,7 +272,7 @@ export function InviteClient({ viewer }: { viewer: string | null }) {
                 transform: "rotate(-0.4deg)",
               }}
             >
-              {dragging ? "drop it! 📷" : photo ? "swap the photo" : "pick or drop a photo 📷"}
+              {dragging ? "放下来！📷" : photo ? "换一张" : "选择或拖入照片 📷"}
               <input
                 type="file"
                 accept="image/png,image/jpeg,image/webp,image/gif"
@@ -292,7 +292,7 @@ export function InviteClient({ viewer }: { viewer: string | null }) {
                 <button
                   type="button"
                   onClick={() => setPhoto(null)}
-                  aria-label="remove photo"
+                  aria-label="移除照片"
                   style={{ background: "none", border: "none", cursor: "pointer", fontFamily: script, fontWeight: 700, fontSize: "20px", color: ink, padding: 0 }}
                 >
                   ✕
@@ -317,7 +317,7 @@ export function InviteClient({ viewer }: { viewer: string | null }) {
               transform: "rotate(0.5deg)",
             }}
           >
-            {busy ? "making your kit…" : "make my kit ✂"}
+            {busy ? "正在生成工具包…" : "生成我的工具包 ✂"}
           </button>
           {error && (
             <p style={{ margin: "14px 0 0", fontFamily: slab, fontWeight: 600, fontSize: "15px", color: "#C2342B" }}>
@@ -339,17 +339,14 @@ export function InviteClient({ viewer }: { viewer: string | null }) {
             }}
           >
             <p style={{ margin: 0, fontFamily: script, fontWeight: 700, fontSize: "24px" }}>
-              done, {name.trim().split(/\s+/)[0]}! here&apos;s your kit ✉
+              好了，{name.trim().split(/\s+/)[0]}！这是你的工具包 ✉
             </p>
             <p style={{ margin: "8px 0 14px", fontFamily: slab, fontSize: "15.5px", lineHeight: 1.55 }}>
-              Paste the whole thing into Claude Code or Codex — either works.
-              Your agent installs the three skills for both tools (the shelf,
-              how we like to learn, and the template library), then helps you
-              start your first doc.
+              把全部内容粘贴到 Claude Code 或 Codex — 都可以。你的代理会自动安装三个技能（布告板、学习方法、模板库），然后帮你开始第一篇文档。
             </p>
             <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", marginBottom: "14px" }}>
-              <button onClick={copy} style={btnStyle("#A5D8FF")}>{copied ? "copied ✓" : "copy it"}</button>
-              <button onClick={download} style={btnStyle("#FFC9C9")}>download .md</button>
+              <button onClick={copy} style={btnStyle("#A5D8FF")}>{copied ? "已复制 ✓" : "复制"}</button>
+              <button onClick={download} style={btnStyle("#FFC9C9")}>下载 .md</button>
             </div>
             <textarea
               readOnly
@@ -393,7 +390,8 @@ function btnStyle(bg: string): React.CSSProperties {
 // What a member's browser sees here instead of the mint form: their corner is
 // claimed, and their kit (stashed in localStorage when it was minted) is one
 // click away if they need to reinstall on another machine.
-function AlreadyOnBoard({ viewer }: { viewer: string }) {
+function AlreadyOnBoard({ viewer, viewerName }: { viewer: string; viewerName?: string | null }) {
+  const displayName = viewerName || viewer;
   const [kit, setKit] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -416,7 +414,7 @@ function AlreadyOnBoard({ viewer }: { viewer: string }) {
     <main style={{ minHeight: "100vh", color: ink, padding: "0 clamp(18px, 4vw, 48px)" }}>
       <div style={{ maxWidth: "760px", margin: "0 auto", padding: "56px 0 72px" }}>
         <a href="/" style={{ fontFamily: script, fontWeight: 700, fontSize: "22px", color: "#3B2F21", textDecoration: "none" }}>
-          ← back to the board
+          ← 回到布告板
         </a>
 
         <h1
@@ -431,7 +429,7 @@ function AlreadyOnBoard({ viewer }: { viewer: string }) {
             transform: "rotate(-1deg)",
           }}
         >
-          you&apos;re already on the board
+          你已经在板上了
         </h1>
 
         <div
@@ -446,15 +444,14 @@ function AlreadyOnBoard({ viewer }: { viewer: string }) {
         >
           <span aria-hidden style={{ position: "absolute", top: "-8px", left: "50%", transform: "translateX(-50%)", width: "16px", height: "16px", borderRadius: "50%", background: "radial-gradient(circle at 30% 30%, #4dabf7, #1864ab)", boxShadow: "0 2px 4px rgba(45,42,38,0.5), inset -2px -2px 4px rgba(0,0,0,0.2)" }} />
           <p style={{ margin: 0, fontFamily: script, fontWeight: 700, fontSize: "26px", lineHeight: 1.15 }}>
-            hey {viewer} — your corner&apos;s claimed ✎
+            嘿 {displayName} — 你的角落已认领 ✎
           </p>
           <p style={{ margin: "10px 0 0", fontFamily: slab, fontSize: "15.5px", lineHeight: 1.55 }}>
-            one member, one corner. head to{" "}
+            一人一角。去{" "}
             <a href={`/#${viewer}`} style={{ color: ink, fontWeight: 600 }}>
-              your paper on the board
+              你在布告板上的页面
             </a>{" "}
-            to add or delete lessons — or grab your kit again below if you need
-            to set up another machine.
+            添加或删除笔记 — 或者在下面重新领取工具包（如果你需要在新设备上配置）。
           </p>
         </div>
 
@@ -470,7 +467,7 @@ function AlreadyOnBoard({ viewer }: { viewer: string }) {
             }}
           >
             <p style={{ margin: "0 0 12px", fontFamily: script, fontWeight: 700, fontSize: "23px" }}>
-              your kit ✉
+              你的工具包 ✉
             </p>
             <button
               onClick={copy}
@@ -486,7 +483,7 @@ function AlreadyOnBoard({ viewer }: { viewer: string }) {
                 marginBottom: "12px",
               }}
             >
-              {copied ? "copied ✓" : "copy it"}
+              {copied ? "已复制 ✓" : "复制"}
             </button>
             <textarea
               readOnly
@@ -508,8 +505,7 @@ function AlreadyOnBoard({ viewer }: { viewer: string }) {
           </div>
         ) : (
           <p style={{ margin: "26px 0 0", fontFamily: script, fontWeight: 600, fontSize: "21px", color: "#3B2F21" }}>
-            (no kit stashed in this browser — your agent already has it in its
-            skill file, so you probably never need it again)
+            （此浏览器未存工具包 — 你的代理已经在技能文件里有了，可能不需要再用到）
           </p>
         )}
       </div>
@@ -536,7 +532,7 @@ function MemberSignIn() {
     );
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      setError(data.error ?? "sign-in failed");
+      setError(data.error ?? "登录失败");
       setBusy(false);
       return;
     }
@@ -560,7 +556,7 @@ function MemberSignIn() {
             transform: "rotate(-0.6deg)",
           }}
         >
-          already a member? sign back in ✎
+          已经是成员？重新登录 ✎
         </button>
       ) : (
         <div
@@ -576,24 +572,24 @@ function MemberSignIn() {
           }}
         >
           <p style={{ margin: 0, fontFamily: script, fontWeight: 700, fontSize: "22px" }}>
-            welcome back ✎
+            欢迎回来 ✎
           </p>
           <p style={{ margin: "6px 0 12px", fontFamily: slab, fontSize: "13.5px", lineHeight: 1.5, opacity: 0.8 }}>
-            your member secret is the <code style={{ fontFamily: "ui-monospace, monospace", fontSize: "12px" }}>x-owner-token</code>{" "}
-            line in your learning-shelf SKILL.md — ask your agent for it.
+            你的成员密钥是 <code style={{ fontFamily: "ui-monospace, monospace", fontSize: "12px" }}>x-owner-token</code>{" "}
+            那一行，在你的 learning-shelf SKILL.md 里 — 问你的代理要。
           </p>
           <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="your name"
+              placeholder="你的名字"
               style={{ fontFamily: slab, fontSize: "15px", padding: "8px 12px", border: `2px solid ${ink}`, background: "#fff", color: ink, outline: "none", width: "120px" }}
             />
             <input
               value={token}
               onChange={(e) => setToken(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && signIn()}
-              placeholder="member secret"
+              placeholder="成员密钥"
               type="password"
               style={{ fontFamily: "ui-monospace, monospace", fontSize: "14px", padding: "8px 12px", border: `2px solid ${ink}`, background: "#fff", color: ink, outline: "none", flex: 1, minWidth: "160px" }}
             />
@@ -612,7 +608,7 @@ function MemberSignIn() {
                 opacity: !name.trim() || !token.trim() ? 0.6 : 1,
               }}
             >
-              {busy ? "signing in…" : "sign in"}
+              {busy ? "正在登录…" : "登录"}
             </button>
           </div>
           {error && (

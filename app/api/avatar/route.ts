@@ -18,33 +18,33 @@ export async function POST(request: Request): Promise<Response> {
   const secret = process.env.SHELF_SECRET;
 
   if (!secret) {
-    return json(500, { error: "server is missing SHELF_SECRET" });
+    return json(500, { error: "服务器缺少 SHELF_SECRET" });
   }
   if (request.headers.get("x-shelf-secret") !== secret) {
-    return json(401, { error: "bad or missing x-shelf-secret header" });
+    return json(401, { error: "x-shelf-secret 头部无效或缺失" });
   }
 
   let form: FormData;
   try {
     form = await request.formData();
   } catch {
-    return json(400, { error: "expected multipart form data" });
+    return json(400, { error: "需要 multipart 表单数据" });
   }
 
   const author = String(form.get("author") ?? "").toLowerCase();
   const image = form.get("image");
 
   if (!AUTHOR_PATTERN.test(author)) {
-    return json(400, { error: "author must match " + String(AUTHOR_PATTERN) });
+    return json(400, { error: "author 必须匹配 " + String(AUTHOR_PATTERN) });
   }
   if (!(image instanceof File)) {
-    return json(400, { error: "image file is required (-F image=@photo.jpg)" });
+    return json(400, { error: "需要图片文件（-F image=@photo.jpg）" });
   }
   if (!avatarExtFor(image.type)) {
-    return json(400, { error: "image must be png, jpeg, webp, or gif" });
+    return json(400, { error: "图片必须是 png、jpeg、webp 或 gif 格式" });
   }
   if (image.size > MAX_IMAGE_BYTES) {
-    return json(413, { error: "image exceeds 50MB — resize it down first" });
+    return json(413, { error: "图片超过 50MB — 先缩小" });
   }
 
   // Only the corner's owner can hang (or replace) its polaroid.

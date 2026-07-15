@@ -61,11 +61,10 @@ export default function NotFound() {
             }}
           />
           <p style={{ margin: 0, fontFamily: script, fontWeight: 700, fontSize: "28px", lineHeight: 1.15 }}>
-            this note fell off the board
+            这张便签从布告板上掉下来了
           </p>
           <p style={{ margin: "10px 0 0", fontFamily: slab, fontSize: "16px", lineHeight: 1.5 }}>
-            whatever was pinned here is gone — maybe the link is old, maybe it
-            never existed.
+            原来钉在这里的内容不见了 — 也许链接过期了，也许它从未存在过。
           </p>
         </div>
 
@@ -80,7 +79,7 @@ export default function NotFound() {
               textDecoration: "none",
             }}
           >
-            ← back to the board
+            ← 回到布告板
           </a>
         </div>
       </div>

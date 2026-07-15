@@ -15,6 +15,8 @@ export type AuthorGroup = {
   author: string;
   authorStyle: string;
   docs: DocMeta[];
+  // Display name (may be Chinese / non-ASCII); falls back to author slug.
+  name?: string;
   // Set when the docs array is one PAGE of a larger corner, so headers that
   // show a count can show the real total.
   total?: number;
@@ -53,7 +55,7 @@ export function AuthorPanel({ group }: { group: AuthorGroup }) {
 const date = (iso: string) => iso.slice(0, 10);
 // "~14 min" — measured by the server at publish time; hidden for old docs
 // published before the field existed
-const read = (doc: DocMeta) => (doc.readMinutes > 0 ? ` · ~${doc.readMinutes} min` : "");
+const read = (doc: DocMeta) => (doc.readMinutes > 0 ? ` · ~${doc.readMinutes} 分钟` : "");
 
 // The empty corner of a member who has joined (via their kit's hello call)
 // but hasn't pinned a first doc yet. Token-driven so it already wears their
@@ -78,17 +80,17 @@ function JustJoinedPanel({ group }: { group: AuthorGroup }) {
     >
       <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: "16px", flexWrap: "wrap", borderBottom: `2px solid ${ink}`, paddingBottom: "12px" }}>
         <h2 style={{ margin: 0, fontFamily: display, fontSize: "clamp(28px, 3.6vw, 40px)", lineHeight: 1, color: ink }}>
-          {group.author}
+          {group.name || group.author}
         </h2>
         <span style={{ fontFamily: body, fontSize: "12px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: accent }}>
-          just joined
+          刚加入
         </span>
       </div>
       <p style={{ margin: "18px 0 0", fontFamily: body, fontSize: "16px", lineHeight: 1.6, color: ink, opacity: 0.85, maxWidth: "52ch" }}>
-        this corner is claimed — {group.author} is picking a first topic.
+        这个角落已认领 — {group.name || group.author} 正在选第一个主题。
       </p>
       <p style={{ margin: "10px 0 0", fontFamily: "'Caveat', cursive", fontWeight: 600, fontSize: "22px", color: accent }}>
-        first doc coming soon ✎
+        第一篇文档即将到来 ✎
       </p>
     </section>
   );
@@ -120,7 +122,7 @@ function ProgressBar({
     <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: "5px", marginTop: "2px", minWidth: 0 }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", minWidth: 0, fontFamily: font, fontSize: "10.5px", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: ink, opacity: 0.85 }}>
         <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>
-          {doc.currentModule ? `on: ${doc.currentModule}` : "progress"}
+          {doc.currentModule ? `当前：${doc.currentModule}` : "进度"}
         </span>
         <span style={{ whiteSpace: "nowrap" }}>{doc.modulesDone} / {doc.modulesTotal}</span>
       </div>
@@ -165,10 +167,10 @@ function CobaltGridPanel({ group }: { group: AuthorGroup }) {
       `}</style>
       <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: "20px", borderBottom: `1.5px solid ${ink}`, paddingBottom: "10px" }}>
         <h2 style={{ margin: 0, fontFamily: serif, fontWeight: 500, fontStyle: "italic", fontSize: "clamp(32px,4vw,46px)", lineHeight: 0.95, color: ink }}>
-          {group.author}
+          {group.name || group.author}
         </h2>
         <span style={{ fontFamily: mono, fontSize: "11px", letterSpacing: "0.1em", color: ink, textTransform: "uppercase" }}>
-          index · {String(group.total ?? group.docs.length).padStart(2, "0")}
+          索引 · {String(group.total ?? group.docs.length).padStart(2, "0")}
         </span>
       </div>
 
@@ -227,7 +229,7 @@ function BlockFramePanel({ group }: { group: AuthorGroup }) {
     >
       <div style={{ display: "flex", alignItems: "center", gap: "14px", flexWrap: "wrap", marginBottom: "24px" }}>
         <h2 style={{ margin: 0, fontFamily: display, fontWeight: 700, fontSize: "clamp(32px,4vw,48px)", lineHeight: 0.9, letterSpacing: "-0.02em", color: black, textTransform: "uppercase" }}>
-          {group.author}
+          {group.name || group.author}
         </h2>
       </div>
 
@@ -278,7 +280,7 @@ function DaisyDaysPanel({ group }: { group: AuthorGroup }) {
       <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "24px" }}>
         <Daisy color="#A8D8F0" ink={inkc} size={38} />
         <h2 style={{ margin: 0, fontFamily: display, fontWeight: 500, fontSize: "clamp(32px,4vw,46px)", lineHeight: 1, color: inkc }}>
-          {group.author}
+          {group.name || group.author}
         </h2>
       </div>
 
@@ -294,7 +296,7 @@ function DaisyDaysPanel({ group }: { group: AuthorGroup }) {
                 <p style={{ margin: 0, fontFamily: body, fontWeight: 500, fontSize: "13px", lineHeight: 1.55 }}>{doc.description}</p>
               )}
               <ProgressBar doc={doc} ink={inkc} accent={caps[i % caps.length]} font={body} />
-              <span style={{ fontFamily: body, fontWeight: 700, fontSize: "11.5px", opacity: 0.6 }}>updated {date(doc.updatedAt)}{read(doc)}</span>
+              <span style={{ fontFamily: body, fontWeight: 700, fontSize: "11.5px", opacity: 0.6 }}>更新于 {date(doc.updatedAt)}{read(doc)}</span>
             </div>
           </a>
         ))}
@@ -344,10 +346,10 @@ function EightBitOrbitPanel({ group }: { group: AuthorGroup }) {
     >
       <div style={{ display: "flex", alignItems: "center", gap: "14px", flexWrap: "wrap", marginBottom: "24px" }}>
         <span style={{ background: navy, color: yellow, fontFamily: mono, fontSize: "11px", letterSpacing: "0.1em", padding: "5px 12px", textTransform: "uppercase", border: `1px solid ${cyan}` }}>
-          player
+          玩家
         </span>
         <h2 style={{ margin: 0, fontFamily: display, fontWeight: 700, fontSize: "clamp(30px,4vw,46px)", lineHeight: 1, color: cyan, textShadow: `2px 2px 0 ${pink}, 4px 4px 0 ${yellow}`, textTransform: "uppercase" }}>
-          {group.author}
+          {group.name || group.author}
         </h2>
       </div>
 
@@ -407,7 +409,7 @@ function PinAndPaperPanel({ group }: { group: AuthorGroup }) {
       <div style={{ display: "flex", alignItems: "baseline", gap: "14px", marginBottom: "22px" }}>
         <SafetyPin ink={ink} />
         <h2 style={{ margin: 0, fontFamily: script, fontWeight: 700, fontSize: "clamp(38px,5vw,58px)", lineHeight: 0.9, color: ink }}>
-          {group.author}
+          {group.name || group.author}
         </h2>
       </div>
 
@@ -478,7 +480,7 @@ function GenericPanel({ group, token }: { group: AuthorGroup; token: StyleToken 
     >
       <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap", marginBottom: "22px" }}>
         <h2 style={{ margin: 0, fontFamily: token.display, fontWeight: 700, fontSize: "clamp(30px,4vw,48px)", lineHeight: 1, color: token.ink }}>
-          {group.author}
+          {group.name || group.author}
         </h2>
       </div>
 
@@ -541,7 +543,7 @@ function FalStylePanel({ group }: { group: AuthorGroup }) {
     >
       <div style={{ display: "flex", alignItems: "center", gap: "14px", flexWrap: "wrap", borderBottom: `2px solid ${ink}`, paddingBottom: "14px" }}>
         <h2 style={{ margin: 0, fontFamily: grotesk, fontWeight: 700, fontSize: "clamp(32px, 4.2vw, 50px)", lineHeight: 0.92, letterSpacing: "-0.04em", color: ink }}>
-          {group.author}
+          {group.name || group.author}
         </h2>
         <span style={{ marginLeft: "auto", fontFamily: mono, fontSize: "11px", letterSpacing: "0.08em", textTransform: "uppercase", color: purple }}>
           fal.style
@@ -569,7 +571,7 @@ function FalStylePanel({ group }: { group: AuthorGroup }) {
               {/* saturated header band with mono index */}
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "10px", background: head.bg, color: head.fg, padding: "7px 12px" }}>
                 <span style={{ fontFamily: mono, fontSize: "10.5px", letterSpacing: "0.1em", textTransform: "uppercase" }}>
-                  DOC {String(i + 1).padStart(2, "0")}
+                  文档 {String(i + 1).padStart(2, "0")}
                 </span>
                 <span style={{ fontFamily: mono, fontSize: "10.5px", letterSpacing: "0.06em" }}>
                   {date(doc.updatedAt)}
@@ -592,7 +594,7 @@ function FalStylePanel({ group }: { group: AuthorGroup }) {
                   {/* the one active tag may use lime */}
                   {doc.modulesTotal > 0 && doc.modulesDone < doc.modulesTotal && (
                     <span style={{ marginLeft: "auto", flex: "0 0 auto", fontFamily: mono, fontSize: "10px", letterSpacing: "0.08em", textTransform: "uppercase", background: lime, color: ink, border: `1px solid ${ink}`, padding: "2px 7px" }}>
-                      ACTIVE
+                      进行中
                     </span>
                   )}
                 </div>
@@ -612,7 +614,7 @@ function PlainPanel({ group }: { group: AuthorGroup }) {
   const ink = "#2a2a2a";
   return (
     <section id={group.author.toLowerCase()} style={{ background: "#fff", border: `1.5px solid ${ink}`, padding: "30px clamp(24px,4vw,44px) 34px" }}>
-      <h2 style={{ margin: "0 0 18px", fontFamily: "system-ui, sans-serif", fontWeight: 700, fontSize: "clamp(28px,3.5vw,40px)", color: ink }}>{group.author}</h2>
+      <h2 style={{ margin: "0 0 18px", fontFamily: "system-ui, sans-serif", fontWeight: 700, fontSize: "clamp(28px,3.5vw,40px)", color: ink }}>{group.name || group.author}</h2>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(250px,1fr))", gap: "16px" }}>
         {group.docs.map((doc, i) => (
           <a key={doc.slug} href={`/d/${doc.slug}`} style={{ border: `1.5px solid ${ink}`, padding: "16px", textDecoration: "none", color: ink, display: "grid", gap: "8px", alignContent: "start" }}>

@@ -4,6 +4,7 @@
 // their corner theirs alone. Gated by the group password. Multipart so an
 // optional polaroid photo can ride along with the claim.
 
+import { randomBytes } from "node:crypto";
 import { buildInviteInstaller } from "@/lib/invite";
 import { hashOwnerToken, mintOwnerToken, ownerCookieHeader } from "@/lib/owner";
 import {
@@ -23,37 +24,38 @@ export async function POST(request: Request): Promise<Response> {
   try {
     form = await request.formData();
   } catch {
-    return json(400, { error: "expected multipart form data" });
+    return json(400, { error: "需要 multipart 表单数据" });
   }
 
   // The friend-group gate: minting an installer hands out the upload secret,
   // so prove you belong first. Set INVITE_PASSWORD in the environment.
   const expected = process.env.INVITE_PASSWORD;
   if (!expected) {
-    return json(500, { error: "server is missing INVITE_PASSWORD" });
+    return json(500, { error: "服务器缺少 INVITE_PASSWORD" });
   }
   if (String(form.get("password") ?? "") !== expected) {
-    return json(401, { error: "wrong password — ask a friend for the shelf password" });
+    return json(401, { error: "密码错误 — 找朋友要布告板密码" });
   }
 
-  // One corner per name: minting a kit claims the author name and binds a
-  // fresh owner token to it. A taken name can't be re-minted — otherwise
-  // anyone with the shelf password could grab someone else's corner.
-  const rawName = String(form.get("name") ?? "");
-  const author = rawName.trim().toLowerCase().split(/\s+/)[0].replace(/[^a-z0-9-]/g, "");
-  if (!author) {
-    return json(400, { error: "give us a name first" });
+  // One corner per name: minting a kit claims the author slug and binds a
+  // fresh owner token to it. The slug is randomly generated so the user's
+  // display name can be any language (Chinese, emoji-free) without worrying
+  // about URL-safe characters or collisions.
+  const rawName = String(form.get("name") ?? "").trim();
+  if (!rawName) {
+    return json(400, { error: "请先输入名字" });
   }
+  const author = randomBytes(4).toString("hex");
 
   // Validate the optional polaroid BEFORE claiming, so a bad file doesn't
   // burn the name.
   const photo = form.get("photo");
   if (photo instanceof File && photo.size > 0) {
     if (!avatarExtFor(photo.type)) {
-      return json(400, { error: "photo must be png, jpeg, webp, or gif" });
+      return json(400, { error: "照片必须是 png、jpeg、webp 或 gif 格式" });
     }
     if (photo.size > MAX_PHOTO_BYTES) {
-      return json(413, { error: "photo exceeds 50MB — pick a smaller one" });
+      return json(413, { error: "照片超过 50MB — 选一张小一点的" });
     }
   }
 
@@ -61,7 +63,7 @@ export async function POST(request: Request): Promise<Response> {
   const hasDocs = docs.some((d) => d.author.toLowerCase() === author);
   if (record || hasDocs) {
     return json(409, {
-      error: `"${author}" already has a corner on the shelf — if it's yours, your original kit still works; otherwise pick another name`,
+      error: "出错了，请重试",
     });
   }
 
@@ -78,7 +80,7 @@ export async function POST(request: Request): Promise<Response> {
     await setAvatar(author, Buffer.from(await photo.arrayBuffer()), photo.type);
   }
 
-  const installer = buildInviteInstaller(rawName, style, ownerToken);
+  const installer = buildInviteInstaller(rawName, author, style, ownerToken);
 
   // The minting browser becomes this member's browser: the cookie unlocks
   // their owner controls on the board (add / delete lessons, leave).

@@ -212,30 +212,28 @@ export async function deleteAvatar(author: string): Promise<void> {
   }
 }
 
-// Rewrite the member's living interests line (agent-sent on publish).
-export async function saveAuthorInterests(
+// Single read-modify-write for both interests and activity on publish.
+// Previously these were two separate read-modify-write cycles, which caused
+// a race condition on Vercel Blob: recordActivity's read could return a
+// CDN-cached copy (pre-dating the interests write), and its write would
+// then silently overwrite the just-saved interests. Combining them into
+// one atomic update eliminates the race.
+export async function touchAuthorOnPublish(
   author: string,
-  interests: string,
+  interests?: string,
 ): Promise<void> {
   const record = await getAuthorRecord(author);
   if (!record) return;
-  await writeAuthorRecord(author, { ...record, interests });
-}
 
-// Stamp today (UTC) onto the member's activity record — called on every
-// publish. Deduped, sorted, capped.
-export async function recordActivity(author: string): Promise<void> {
-  const record = await getAuthorRecord(author);
-  if (!record) return;
+  const updated: AuthorRecord = { ...record };
+  if (interests) updated.interests = interests;
+
   const today = new Date().toISOString().slice(0, 10);
   const days = new Set(record.activeDays ?? []);
-  if (days.has(today)) return;
   days.add(today);
-  const sorted = [...days].sort();
-  await writeAuthorRecord(author, {
-    ...record,
-    activeDays: sorted.slice(-400),
-  });
+  updated.activeDays = [...days].sort().slice(-400);
+
+  await writeAuthorRecord(author, updated);
 }
 
 // Merge join-time profile fields into the author's record.

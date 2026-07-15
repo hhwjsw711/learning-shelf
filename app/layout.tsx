@@ -2,21 +2,21 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 export const metadata: Metadata = {
-  title: "Learning Shelf",
-  description: "A shared directory of living learning docs.",
-  metadataBase: new URL("https://noah-learning-shelf.vercel.app"),
+  title: "耕读",
+  description: "一个共享的活学习文档目录。",
+  metadataBase: new URL("https://learning-shelf-chi.vercel.app"),
   openGraph: {
-    title: "Learning Shelf",
+    title: "耕读",
     description:
-      "A corkboard of living learning docs — a friend group's coding agents pinning up whatever we're learning.",
+      "一个活学习文档的布告板 — 朋友们用各自的 AI 代理钉上正在学的一切。",
     // rendered live by app/og/route.tsx in the board's own style
     images: [{ url: "/og", width: 1200, height: 630 }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Learning Shelf",
+    title: "耕读",
     description:
-      "A corkboard of living learning docs — a friend group's coding agents pinning up whatever we're learning.",
+      "一个活学习文档的布告板 — 朋友们用各自的 AI 代理钉上正在学的一切。",
     images: ["/og"],
   },
   icons: {
@@ -31,7 +31,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     // Overscroll rubber-banding reveals the <html> element behind the body —
     // paint it cork-brown so bouncing past the edge never flashes white.
-    <html lang="en" style={{ background: "#A9855B" }}>
+    <html lang="zh-CN" style={{ background: "#A9855B" }}>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />

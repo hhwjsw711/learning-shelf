@@ -9,7 +9,7 @@
 //     -F author=noah -F template=sakura-chroma \
 //     -F html=@softshell-log.html
 
-import { deleteDoc, getDocMeta, publishDoc, recordActivity, saveAuthorInterests } from "@/lib/store";
+import { deleteDoc, getDocMeta, publishDoc, touchAuthorOnPublish } from "@/lib/store";
 import { ownerTokenFrom, parseOwnerCookie, verifyOwner } from "@/lib/owner";
 import { measureRead } from "@/lib/readtime";
 
@@ -20,18 +20,18 @@ export async function POST(request: Request): Promise<Response> {
   const secret = process.env.SHELF_SECRET;
 
   if (!secret) {
-    return json(500, { error: "server is missing SHELF_SECRET" });
+    return json(500, { error: "服务器缺少 SHELF_SECRET" });
   }
 
   if (request.headers.get("x-shelf-secret") !== secret) {
-    return json(401, { error: "bad or missing x-shelf-secret header" });
+    return json(401, { error: "x-shelf-secret 头部无效或缺失" });
   }
 
   let form: FormData;
   try {
     form = await request.formData();
   } catch {
-    return json(400, { error: "expected multipart form data" });
+    return json(400, { error: "需要 multipart 表单数据" });
   }
 
   const slug = String(form.get("slug") ?? "");
@@ -55,22 +55,22 @@ export async function POST(request: Request): Promise<Response> {
     htmlField instanceof File ? await htmlField.text() : String(htmlField ?? "");
 
   if (!SLUG_PATTERN.test(slug)) {
-    return json(400, { error: "slug must match " + String(SLUG_PATTERN) });
+    return json(400, { error: "slug 必须匹配 " + String(SLUG_PATTERN) });
   }
   if (!title || !author || !template) {
-    return json(400, { error: "title, author and template are all required" });
+    return json(400, { error: "title、author 和 template 都是必填项" });
   }
   if (!subject || !description) {
     return json(400, {
       error:
-        "subject and description are required — say what is being learned and give the directory card one or two sentences",
+        "subject 和 description 是必填项 — 说明正在学什么，给目录卡片一两句话",
     });
   }
   if (!html.trimStart().toLowerCase().startsWith("<!doctype html")) {
-    return json(400, { error: "html must be a complete document (<!doctype html …)" });
+    return json(400, { error: "html 必须是完整的文档（<!doctype html …）" });
   }
   if (Buffer.byteLength(html, "utf-8") > MAX_HTML_BYTES) {
-    return json(413, { error: "html exceeds 5MB" });
+    return json(413, { error: "html 超过 5MB" });
   }
 
   // Ownership: the caller must hold this author's owner token, and the slug —
@@ -84,19 +84,16 @@ export async function POST(request: Request): Promise<Response> {
   const existing = await getDocMeta(slug);
   if (existing && existing.author.toLowerCase() !== author.toLowerCase()) {
     return json(403, {
-      error: `slug "${slug}" belongs to ${existing.author} — pick a different slug`,
+      error: `slug "${slug}" 已被别人占用 — 换一个 slug`,
     });
   }
 
   // The member's living interests line rides along with every publish —
   // a rewrite, not an append, so it always reflects them now.
+  // Combined with activity stamping in a single read-modify-write to avoid
+  // a race condition where the second write overwrites the first.
   const interests = String(form.get("interests") ?? "").trim().slice(0, 280);
-  if (interests) {
-    await saveAuthorInterests(author.toLowerCase(), interests);
-  }
-
-  // every publish marks the member active today — streak fuel
-  await recordActivity(author.toLowerCase());
+  await touchAuthorOnPublish(author.toLowerCase(), interests || undefined);
 
   const meta = await publishDoc(
     {
@@ -119,16 +116,16 @@ export async function DELETE(request: Request): Promise<Response> {
   const hasSecret = Boolean(secret) && request.headers.get("x-shelf-secret") === secret;
   const hasCookie = Boolean(parseOwnerCookie(request));
   if (!hasSecret && !hasCookie) {
-    return json(401, { error: "bad or missing x-shelf-secret header" });
+    return json(401, { error: "x-shelf-secret 头部无效或缺失" });
   }
   const slug = new URL(request.url).searchParams.get("slug") ?? "";
   if (!SLUG_PATTERN.test(slug)) {
-    return json(400, { error: "slug must match " + String(SLUG_PATTERN) });
+    return json(400, { error: "slug 必须匹配 " + String(SLUG_PATTERN) });
   }
 
   const meta = await getDocMeta(slug);
   if (!meta) {
-    return json(404, { error: `no doc at slug "${slug}"` });
+    return json(404, { error: `slug "${slug}" 下没有文档` });
   }
   const docAuthor = meta.author.toLowerCase();
   const owner = await verifyOwner(docAuthor, ownerTokenFrom(request, docAuthor));

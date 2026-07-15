@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>时间线与基础剪辑 — 分割、裁剪、排列 | 耕读</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Caveat+Brush&family=DM+Mono:wght@400;500&family=Noto+Serif+SC:wght@700;900&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ===== Reset ===== */
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+
+/* ===== Tokens ===== */
+:root{
+  --blue:#2C2CDC;
+  --blue-deep:#1B1BB0;
+  --orange:#F2A03A;
+  --orange-deep:#E89321;
+  --red:#E83A2A;
+  --red-deep:#B7281C;
+  --cream:#F4E9D6;
+  --paper:#F5F2EA;
+  --ink:#0E0E14;
+
+  --fd:"Noto Serif SC",serif;
+  --fa:"Alfa Slab One",serif;
+  --fb:"Noto Sans SC",sans-serif;
+  --fn:"Noto Sans SC",sans-serif;
+  --fm:"DM Mono",monospace;
+  --fs:"Caveat Brush",cursive;
+}
+
+/* ===== Base ===== */
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--fb);
+  font-size:17px;
+  font-weight:500;
+  line-height:1.8;
+  -webkit-font-smoothing:antialiased;
+}
+.container{max-width:820px;margin:0 auto;padding:0 28px}
+
+/* ===== Grain overlay ===== */
+.grain{position:relative;overflow:hidden}
+.grain::before{
+  content:"";
+  position:absolute;inset:0;
+  pointer-events:none;z-index:0;
+  background-image:
+    radial-gradient(rgba(0,0,0,.06) 1px,transparent 1px),
+    radial-gradient(rgba(255,255,255,.05) 1px,transparent 1px);
+  background-size:3px 3px,5px 5px;
+  background-position:0 0,1px 2px;
+  mix-blend-mode:multiply;
+  opacity:.5;
+}
+.grain>*{position:relative;z-index:1}
+
+/* ===== Top bar ===== */
+.topbar{
+  background:var(--blue);
+  color:var(--cream);
+  border-bottom:6px solid var(--cream);
+  padding:14px 28px;
+  font-family:var(--fm);
+  font-size:12px;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  position:sticky;top:0;z-index:100;
+}
+
+/* ===== Blue section ===== */
+.blue-section{background:var(--blue);color:var(--cream)}
+.inset-frame{
+  border:6px solid var(--cream);
+  position:absolute;inset:20px;
+  pointer-events:none;z-index:0;
+}
+
+/* ===== Hero ===== */
+.hero{padding:72px 0 56px}
+.hero-label{
+  font-family:var(--fm);
+  font-size:13px;
+  letter-spacing:.22em;
+  text-transform:uppercase;
+  margin-bottom:28px;
+  color:var(--orange);
+}
+.hero-title{
+  font-family:var(--fd);
+  font-weight:900;
+  font-size:clamp(38px,8vw,68px);
+  line-height:1.15;
+  margin-bottom:14px;
+  text-shadow:4px 4px 0 var(--red),8px 8px 0 var(--red-deep);
+}
+.hero-subtitle{
+  font-family:var(--fb);
+  font-weight:500;
+  font-size:clamp(18px,3.5vw,26px);
+  line-height:1.4;
+  margin-bottom:36px;
+  opacity:.92;
+}
+
+/* Progress bar */
+.progress-row{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  margin-bottom:32px;
+}
+.progress-track{
+  flex:1;
+  height:14px;
+  background:var(--cream);
+  border:3px solid var(--ink);
+  overflow:hidden;
+}
+.progress-fill{
+  height:100%;
+  width:25%;
+  background:var(--orange);
+  border-right:3px solid var(--ink);
+}
+.progress-text{
+  font-family:var(--fm);
+  font-size:13px;
+  letter-spacing:.1em;
+  white-space:nowrap;
+}
+
+/* Copy buttons */
+.copy-row{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+}
+.copy-btn{
+  background:var(--orange);
+  color:var(--ink);
+  border:4px solid var(--ink);
+  padding:8px 20px;
+  font-family:var(--fm);
+  font-size:12px;
+  font-weight:500;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  cursor:pointer;
+  box-shadow:4px 4px 0 var(--red);
+  transition:transform .12s ease,box-shadow .12s ease;
+}
+.copy-btn:hover{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--red)}
+.copy-btn:active{transform:translate(4px,4px);box-shadow:0 0 0 var(--red)}
+
+/* ===== Section spacing ===== */
+.section{padding:64px 0}
+
+/* ===== Kicker ===== */
+.kicker{
+  font-family:var(--fm);
+  font-size:13px;
+  letter-spacing:.22em;
+  text-transform:uppercase;
+  color:var(--red);
+  margin-bottom:20px;
+  font-weight:500;
+}
+.blue-section .kicker{color:var(--orange)}
+
+/* ===== Section title ===== */
+.section-title{
+  font-family:var(--fd);
+  font-weight:900;
+  font-size:clamp(26px,5vw,42px);
+  line-height:1.2;
+  margin-bottom:28px;
+}
+.section-title.orange{
+  color:var(--orange);
+  text-shadow:3px 3px 0 var(--red),6px 6px 0 var(--red-deep);
+}
+
+/* ===== Lede ===== */
+.lede{
+  font-size:19px;
+  font-weight:500;
+  line-height:1.7;
+  border-left:4px solid var(--ink);
+  padding-left:24px;
+  margin-bottom:24px;
+}
+.blue-section .lede{border-left-color:var(--orange)}
+
+/* ===== Body text ===== */
+.body-text{
+  font-size:17px;
+  line-height:1.8;
+  margin-bottom:20px;
+}
+.body-text strong{font-weight:700}
+
+/* Script interrupt */
+.script-interrupt{
+  display:inline-block;
+  font-family:var(--fs);
+  font-size:36px;
+  color:var(--orange);
+  transform:rotate(-3deg);
+  margin:8px 0 4px 12px;
+  line-height:1;
+}
+
+/* ===== Diamond list ===== */
+.diamond-list{
+  list-style:none;
+  margin:24px 0;
+}
+.diamond-list li{
+  position:relative;
+  padding-left:36px;
+  margin-bottom:18px;
+  line-height:1.7;
+}
+.diamond-list li::before{
+  content:"";
+  position:absolute;
+  left:0;top:10px;
+  width:16px;height:16px;
+  background:var(--red);
+  border-radius:3px;
+  transform:rotate(45deg);
+}
+.blue-section .diamond-list li::before{background:var(--orange)}
+.diamond-list li strong{font-weight:700}
+
+/* ===== Timeline anatomy ===== */
+.tl-anatomy{
+  border:6px solid var(--ink);
+  background:var(--ink);
+  margin-top:28px;
+  display:flex;
+  flex-direction:column;
+}
+.tl-ruler-row{
+  display:grid;
+  grid-template-columns:100px 1fr;
+  background:var(--paper);
+  border-bottom:3px solid var(--ink);
+}
+.tl-corner{
+  font-family:var(--fm);
+  font-size:10px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  padding:8px 10px;
+  border-right:3px solid var(--ink);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:var(--cream);
+  cursor:pointer;
+  transition:background .2s;
+}
+.tl-corner.active{background:var(--orange)}
+.tl-ruler{
+  font-family:var(--fm);
+  font-size:10px;
+  letter-spacing:.05em;
+  padding:8px 12px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.tl-row{
+  display:grid;
+  grid-template-columns:100px 1fr;
+  border-bottom:3px solid var(--ink);
+  min-height:56px;
+}
+.tl-row:last-child{border-bottom:none}
+.tl-track-head{
+  font-family:var(--fn);
+  font-size:12px;
+  font-weight:700;
+  padding:8px 10px;
+  border-right:3px solid var(--ink);
+  display:flex;
+  align-items:center;
+  gap:6px;
+  background:var(--cream);
+  cursor:pointer;
+  transition:background .2s;
+}
+.tl-track-head.active{background:var(--orange)}
+.tl-track-body{
+  position:relative;
+  background:var(--paper);
+  display:flex;
+  align-items:center;
+  padding:6px 8px;
+  gap:4px;
+  cursor:pointer;
+}
+.tl-track-body.active{background:rgba(242,160,58,.2)}
+.tl-clip{
+  height:40px;
+  border-radius:3px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family:var(--fn);
+  font-size:12px;
+  font-weight:500;
+  cursor:pointer;
+  transition:transform .2s,box-shadow .2s;
+  white-space:nowrap;
+  overflow:hidden;
+  padding:0 8px;
+}
+.tl-clip-blue{background:var(--blue);color:var(--cream)}
+.tl-clip-orange{background:var(--orange);color:var(--ink)}
+.tl-clip-blue-light{background:rgba(44,44,220,.35);color:var(--ink)}
+.tl-clip.active{box-shadow:0 0 0 3px var(--red);transform:scale(1.05);z-index:5}
+.tl-playhead-vis{
+  position:absolute;
+  top:0;bottom:0;
+  width:3px;
+  background:var(--red);
+  z-index:10;
+  pointer-events:none;
+}
+.tl-playhead-vis::before{
+  content:"▼";
+  position:absolute;
+  top:-2px;
+  left:-6px;
+  font-size:12px;
+  color:var(--red);
+}
+
+/* Anatomy description */
+.anatomy-desc{
+  background:var(--paper);
+  border:5px solid var(--ink);
+  padding:24px 28px;
+  margin-top:20px;
+  min-height:90px;
+}
+.anatomy-desc-title{
+  font-family:var(--fd);
+  font-weight:900;
+  font-size:20px;
+  margin-bottom:8px;
+  color:var(--blue);
+}
+.anatomy-desc-text{
+  font-size:16px;
+  line-height:1.7;
+}
+.anatomy-hint{
+  font-family:var(--fm);
+  font-size:11px;
+  letter-spacing:.15em;
+  text-transform:uppercase;
+  color:var(--red);
+  margin-top:16px;
+  text-align:center;
+}
+
+/* ===== Split demo ===== */
+.split-demo{
+  border:6px solid var(--ink);
+  background:var(--ink);
+  padding:0;
+  margin-top:28px;
+}
+.sd-label-bar{
+  background:var(--orange);
+  color:var(--ink);
+  border-bottom:4px solid var(--ink);
+  padding:8px 16px;
+  font-family:var(--fm);
+  font-size:12px;
+  letter-spacing:.15em;
+  text-transform:uppercase;
+  font-weight:600;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.sd-stage{
+  background:var(--paper);
+  padding:20px 16px 12px;
+}
+.sd-track-wrap{
+  position:relative;
+  background:var(--ink);
+  border:4px solid var(--ink);
+  height:72px;
+  overflow:visible;
+  cursor:crosshair;
+  user-select:none;
+  touch-action:none;
+}
+.sd-track{
+  position:absolute;
+  inset:0;
+  display:flex;
+  gap:2px;
+  padding:4px;
+}
+.sd-clip{
+  height:100%;
+  border-radius:3px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family:var(--fn);
+  font-size:12px;
+  font-weight:500;
+  color:var(--cream);
+  position:absolute;
+  top:4px;
+  bottom:4px;
+  overflow:hidden;
+  white-space:nowrap;
+  padding:0 8px;
+  transition:all .3s ease;
+}
+.sd-clip-blue{background:var(--blue)}
+.sd-clip-orange{background:var(--orange);color:var(--ink)}
+.sd-clip-split{background:var(--blue-deep);opacity:.85}
+.sd-playhead{
+  position:absolute;
+  top:-4px;
+  bottom:-4px;
+  width:3px;
+  background:var(--red);
+  z-index:20;
+  pointer-events:none;
+  transition:left .05s linear;
+}
+.sd-playhead::before{
+  content:"";
+  position:absolute;
+  top:-8px;
+  left:-7px;
+  width:0;height:0;
+  border-left:8px solid transparent;
+  border-right:8px solid transparent;
+  border-top:10px solid var(--red);
+}
+.sd-ruler{
+  display:flex;
+  justify-content:space-between;
+  font-family:var(--fm);
+  font-size:10px;
+  color:var(--ink);
+  opacity:.5;
+  padding:4px 4px 0;
+}
+.sd-controls{
+  display:flex;
+  gap:12px;
+  justify-content:center;
+  padding:16px 0 8px;
+}
+.sd-btn{
+  background:var(--blue);
+  color:var(--cream);
+  border:4px solid var(--ink);
+  padding:8px 24px;
+  font-family:var(--fm);
+  font-size:13px;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  cursor:pointer;
+  box-shadow:4px 4px 0 var(--red);
+  transition:transform .12s ease,box-shadow .12s ease;
+}
+.sd-btn:hover:not(:disabled){transform:translate(2px,2px);box-shadow:2px 2px 0 var(--red)}
+.sd-btn:active:not(:disabled){transform:translate(4px,4px);box-shadow:0 0 0 var(--red)}
+.sd-btn:disabled{opacity:.4;cursor:not-allowed}
+.sd-btn-alt{background:var(--orange);color:var(--ink)}
+.sd-info{
+  background:var(--cream);
+  border-top:4px solid var(--ink);
+  padding:14px 16px;
+  font-size:15px;
+  line-height:1.6;
+  text-align:center;
+}
+.sd-info strong{font-weight:700}
+.sd-split-count{
+  font-family:var(--fm);
+  font-size:11px;
+  letter-spacing:.1em;
+  color:var(--blue);
+  font-weight:600;
+}
+
+/* ===== Trim visualization ===== */
+.trim-viz{
+  margin-top:28px;
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+.trim-row{
+  display:flex;
+  align-items:center;
+  gap:16px;
+}
+.trim-label{
+  font-family:var(--fm);
+  font-size:12px;
+  letter-spacing:.15em;
+  text-transform:uppercase;
+  font-weight:600;
+  white-space:nowrap;
+  min-width:60px;
+}
+.trim-clip-bar{
+  flex:1;
+  height:48px;
+  display:flex;
+  border:4px solid var(--ink);
+  overflow:hidden;
+}
+.trim-waste{
+  background:rgba(232,58,42,.15);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family:var(--fn);
+  font-size:12px;
+  color:var(--red);
+  border-right:3px solid var(--ink);
+}
+.trim-waste:last-child{border-right:none;border-left:3px solid var(--ink)}
+.trim-keep{
+  background:var(--blue);
+  color:var(--cream);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family:var(--fn);
+  font-size:13px;
+  font-weight:500;
+}
+.trim-arrow{
+  text-align:center;
+  font-family:var(--fa);
+  font-size:32px;
+  color:var(--orange);
+  text-shadow:2px 2px 0 var(--red);
+  line-height:1;
+}
+
+/* ===== Delete comparison ===== */
+.del-compare{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:0;
+  border:6px solid var(--ink);
+  margin-top:28px;
+}
+.del-side{
+  padding:24px 20px;
+}
+.del-left{
+  background:var(--paper);
+  border-right:6px solid var(--ink);
+}
+.del-right{
+  background:var(--blue);
+  color:var(--cream);
+}
+.del-label{
+  font-family:var(--fm);
+  font-size:12px;
+  letter-spacing:.22em;
+  text-transform:uppercase;
+  padding-bottom:12px;
+  margin-bottom:16px;
+  border-bottom:4px solid var(--ink);
+  font-weight:500;
+}
+.del-right .del-label{color:var(--orange);border-bottom-color:var(--cream)}
+.del-diagram{
+  display:flex;
+  align-items:center;
+  gap:4px;
+  margin-bottom:12px;
+  flex-wrap:wrap;
+}
+.del-block{
+  height:32px;
+  border-radius:3px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family:var(--fn);
+  font-size:11px;
+  font-weight:500;
+  padding:0 8px;
+  min-width:40px;
+}
+.del-block-a{background:var(--blue);color:var(--cream)}
+.del-block-b{background:var(--orange);color:var(--ink)}
+.del-block-c{background:var(--blue-deep);color:var(--cream)}
+.del-gap{
+  width:40px;
+  height:32px;
+  border:3px dashed var(--ink);
+  border-radius:3px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family:var(--fn);
+  font-size:10px;
+  color:var(--ink);
+  opacity:.4;
+}
+.del-right .del-gap{border-color:var(--cream);color:var(--cream)}
+.del-desc{
+  font-size:14px;
+  line-height:1.5;
+  margin-top:8px;
+}
+
+/* ===== Compare panel ===== */
+.compare-panel{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:0;
+  border:6px solid var(--ink);
+  margin:28px 0;
+}
+.compare-side{padding:28px 24px}
+.compare-left{background:var(--paper);border-right:6px solid var(--ink)}
+.compare-right{background:var(--blue);color:var(--cream)}
+.compare-label{
+  font-family:var(--fm);
+  font-size:12px;
+  letter-spacing:.22em;
+  text-transform:uppercase;
+  padding-bottom:12px;
+  margin-bottom:16px;
+  border-bottom:4px solid var(--ink);
+  font-weight:500;
+}
+.compare-right .compare-label{color:var(--orange);border-bottom-color:var(--cream)}
+.compare-item{margin-bottom:16px;line-height:1.6;font-size:15px}
+.compare-item:last-child{margin-bottom:0}
+
+/* ===== Flip cards ===== */
+.flip-grid{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:16px;
+  margin-top:28px;
+}
+.flip-card{
+  perspective:1200px;
+  cursor:pointer;
+  height:130px;
+}
+.flip-card-inner{
+  position:relative;
+  width:100%;height:100%;
+  transition:transform .6s ease;
+  transform-style:preserve-3d;
+}
+.flip-card.flipped .flip-card-inner{transform:rotateY(180deg)}
+.flip-face{
+  position:absolute;inset:0;
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
+  border:5px solid var(--ink);
+  padding:22px 26px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+.flip-front{background:var(--paper)}
+.flip-back{
+  background:var(--blue);
+  color:var(--cream);
+  transform:rotateY(180deg);
+}
+.flip-q{
+  font-family:var(--fd);
+  font-weight:700;
+  font-size:17px;
+  line-height:1.5;
+}
+.flip-hint{
+  font-family:var(--fm);
+  font-size:11px;
+  letter-spacing:.15em;
+  text-transform:uppercase;
+  color:var(--red);
+  margin-top:8px;
+}
+.flip-back .flip-hint{color:var(--orange)}
+.flip-a{font-size:16px;line-height:1.6;font-weight:500}
+
+/* ===== Next module teaser ===== */
+.next-module{padding:56px 0}
+.next-module .body-text{color:var(--cream);opacity:.92}
+.next-arrow{
+  font-family:var(--fa);
+  font-size:48px;
+  color:var(--orange);
+  text-shadow:3px 3px 0 var(--red);
+  line-height:1;
+  margin-top:16px;
+}
+
+/* ===== Orange ribbon footer ===== */
+.ribbon{
+  background:var(--orange);
+  color:var(--blue);
+  border-top:6px solid var(--ink);
+  padding:18px 0;
+  font-family:var(--fm);
+  font-size:13px;
+  letter-spacing:.22em;
+  text-transform:uppercase;
+  font-weight:600;
+  text-align:center;
+  overflow:hidden;
+  white-space:nowrap;
+}
+
+/* ===== Responsive ===== */
+@media(max-width:640px){
+  .tl-anatomy{grid-template-columns:1fr}
+  .tl-ruler-row,.tl-row{grid-template-columns:80px 1fr}
+  .tl-track-head{font-size:11px;padding:6px 8px}
+  .tl-clip{font-size:10px;padding:0 4px}
+  .compare-panel,.del-compare{grid-template-columns:1fr}
+  .compare-left,.del-left{border-right:none;border-bottom:6px solid var(--ink)}
+  .topbar{font-size:10px;padding:10px 16px}
+  .hero{padding:48px 0 40px}
+  .section{padding:48px 0}
+  .trim-label{min-width:50px;font-size:10px}
+  .sd-clip{font-size:10px;padding:0 4px}
+}
+
+/* ===== AIGC watermark placeholder ===== */
+</style>
+</head>
+<body>
+
+<!-- ===== Top bar ===== -->
+<div class="topbar grain">
+  <span>耕读 · hugo 的学习笔记</span>
+  <span>剪映 / 模块 02</span>
+</div>
+
+<!-- ===== Hero ===== -->
+<section class="hero blue-section grain">
+  <div class="inset-frame"></div>
+  <div class="container">
+    <div class="hero-label">模块 02 / 08 · 剪映从入门到熟练</div>
+    <h1 class="hero-title">时间线与基础剪辑</h1>
+    <p class="hero-subtitle">分割、裁剪、排列——把素材变成视频</p>
+
+    <div class="progress-row">
+      <div class="progress-track">
+        <div class="progress-fill"></div>
+      </div>
+      <span class="progress-text">2 / 8</span>
+    </div>
+
+    <div class="copy-row">
+      <button class="copy-btn" id="copyHtmlBtn">复制 HTML</button>
+      <button class="copy-btn" id="copyMdBtn">复制 Markdown</button>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 为什么这一步最重要 ===== -->
+<section class="section grain">
+  <div class="container">
+    <div class="kicker">为什么这一步最重要</div>
+    <p class="lede">
+      时间线是剪辑的心脏。所有花哨的效果——转场、字幕、滤镜——都建立在时间线之上。
+    </p>
+    <p class="body-text">
+      如果说模块 1 教你认路，这个模块教你<strong>动手</strong>。分割、裁剪、排列，这三个操作占了一个剪辑师 80% 的工作时间。剩下的 20%——加特效、调色、配字幕——都是在已经切好的片段上锦上添花。
+    </p>
+    <p class="body-text">
+      想象你在厨房做菜：素材是食材，时间线是砧板。你得先切菜、分盘、摆好顺序，才能下锅炒。不会切菜，再好的食材也做不出菜来。
+    </p>
+    <span class="script-interrupt">the core</span>
+  </div>
+</section>
+
+<!-- ===== 时间线解剖 ===== -->
+<section class="section grain" style="background:var(--cream)">
+  <div class="container">
+    <div class="kicker">认识时间线</div>
+    <h2 class="section-title orange">时间线解剖</h2>
+    <p class="body-text">
+      在动手之前，先看清时间线的每个部件。点击下方图中的任意区域或片段，了解它的作用。
+    </p>
+
+    <!-- Timeline anatomy mockup -->
+    <div class="tl-anatomy">
+      <div class="tl-ruler-row">
+        <div class="tl-corner" data-ta="corner">轨道头</div>
+        <div class="tl-ruler">
+          <span>0:00</span><span>0:05</span><span>0:10</span><span>0:15</span><span>0:20</span>
+        </div>
+      </div>
+      <div class="tl-row">
+        <div class="tl-track-head" data-ta="trackhead">视频轨道</div>
+        <div class="tl-track-body" data-ta="clip">
+          <div class="tl-clip tl-clip-blue" style="width:38%">片段 A</div>
+          <div class="tl-clip tl-clip-orange" style="width:30%">片段 B</div>
+          <div class="tl-clip tl-clip-blue" style="width:25%">片段 C</div>
+          <div class="tl-playhead-vis" style="left:35%"></div>
+        </div>
+      </div>
+      <div class="tl-row">
+        <div class="tl-track-head" data-ta="trackhead">音频轨道</div>
+        <div class="tl-track-body" data-ta="clip">
+          <div class="tl-clip tl-clip-blue-light" style="width:68%">背景音乐</div>
+        </div>
+      </div>
+      <div class="tl-row">
+        <div class="tl-track-head" data-ta="trackhead">文字轨道</div>
+        <div class="tl-track-body" data-ta="clip">
+          <div class="tl-clip tl-clip-orange" style="width:20%;margin-left:30%">标题文字</div>
+          <div class="tl-clip tl-clip-orange" style="width:15%;margin-left:10%">字幕</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="anatomy-desc">
+      <div class="anatomy-desc-title" id="anatomyTitle">概览</div>
+      <div class="anatomy-desc-text" id="anatomyDesc">这是时间线的完整结构。点击上方任意区域——轨道头、片段、或标尺——来了解每个部件的作用。</div>
+    </div>
+    <div class="anatomy-hint">点击图中任意区域探索</div>
+  </div>
+</section>
+
+<!-- ===== 分割：最常用的操作 ===== -->
+<section class="section blue-section grain">
+  <div class="inset-frame"></div>
+  <div class="container">
+    <div class="kicker">核心操作</div>
+    <h2 class="section-title">分割——最常用的操作</h2>
+    <p class="body-text" style="color:var(--cream);opacity:.92">
+      分割（也叫"切割"或"split"）就是把一个片段从中间切成两段。这是剪辑中<strong style="color:var(--orange)">使用频率最高</strong>的操作——去掉拍废的开头、删掉多余的结尾、在中间插入其他画面，全靠它。
+    </p>
+
+    <ul class="diamond-list" style="color:var(--cream)">
+      <li><strong>把播放头移到要切的位置</strong>——时间线上那根竖线就是播放头，拖动它或用空格键播放到目标位置。</li>
+      <li><strong>点击工具栏的「分割」按钮</strong>——或者用快捷键 Ctrl+B（Windows）/ Cmd+B（Mac）。</li>
+      <li><strong>片段被切成两段</strong>——现在你可以分别操作每一段：删除、移动、加特效。</li>
+    </ul>
+
+    <p class="body-text" style="color:var(--orange);font-weight:700;margin-top:28px">
+      试试下面的交互演示：拖动红色播放头到片段上，然后点击「分割」按钮。
+    </p>
+
+    <!-- Interactive split demo -->
+    <div class="split-demo">
+      <div class="sd-label-bar">
+        <span>交互式分割演示</span>
+        <span class="sd-split-count" id="sdCount">已分割 0 次</span>
+      </div>
+      <div class="sd-stage">
+        <div class="sd-ruler">
+          <span>0s</span><span>5s</span><span>10s</span><span>15s</span><span>20s</span>
+        </div>
+        <div class="sd-track-wrap" id="sdTrackWrap">
+          <div class="sd-track" id="sdTrack"></div>
+          <div class="sd-playhead" id="sdPlayhead" style="left:30%"></div>
+        </div>
+        <div class="sd-controls">
+          <button class="sd-btn" id="sdSplitBtn">分割</button>
+          <button class="sd-btn sd-btn-alt" id="sdResetBtn">重置</button>
+        </div>
+      </div>
+      <div class="sd-info" id="sdInfo">
+        拖动红色播放头到片段上方，然后点击「分割」。
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 裁剪与删除 ===== -->
+<section class="section grain">
+  <div class="container">
+    <div class="kicker">核心操作</div>
+    <h2 class="section-title orange">裁剪与删除</h2>
+    <p class="body-text">
+      分割是"切开"，裁剪是"修边"。两个操作配合使用，就能从一段原始素材中精确留下你想要的部分。
+    </p>
+
+    <!-- Trim visualization -->
+    <div class="trim-viz">
+      <div class="trim-row">
+        <div class="trim-label">裁剪前</div>
+        <div class="trim-clip-bar">
+          <div class="trim-waste" style="width:20%">废片头</div>
+          <div class="trim-keep" style="width:60%">保留内容</div>
+          <div class="trim-waste" style="width:20%">废片尾</div>
+        </div>
+      </div>
+      <div class="trim-arrow">↓</div>
+      <div class="trim-row">
+        <div class="trim-label">裁剪后</div>
+        <div class="trim-clip-bar">
+          <div class="trim-keep" style="width:100%">保留内容</div>
+        </div>
+      </div>
+    </div>
+
+    <ul class="diamond-list" style="margin-top:32px">
+      <li><strong>拖拽边缘裁剪</strong>——把鼠标放在片段左右边缘，出现双向箭头后拖动，就能缩短或延长片段。这是最快的裁剪方式。</li>
+      <li><strong>分割 + 删除</strong>——先在要删的位置分割，再选中不需要的那段按 Delete。适合去掉片段中间的某一段。</li>
+      <li><strong>波纹删除（推荐）</strong>——右键片段选「波纹删除」，或按 Shift+Delete。片段被删后，后面的内容会自动前移补齐空隙，不用手动拖。</li>
+    </ul>
+
+    <!-- Delete comparison -->
+    <div class="del-compare">
+      <div class="del-side del-left">
+        <div class="del-label">普通删除</div>
+        <div class="del-diagram">
+          <div class="del-block del-block-a">A</div>
+          <div class="del-gap">空隙</div>
+          <div class="del-block del-block-c">C</div>
+        </div>
+        <div class="del-desc">删除 B 后留下空隙，需要手动把 C 拖回来。</div>
+      </div>
+      <div class="del-side del-right">
+        <div class="del-label">波纹删除</div>
+        <div class="del-diagram">
+          <div class="del-block del-block-a">A</div>
+          <div class="del-block del-block-c">C</div>
+        </div>
+        <div class="del-desc">删除 B 后 C 自动前移，空隙消失。省时省力。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 排列与调整 ===== -->
+<section class="section grain" style="background:var(--cream)">
+  <div class="container">
+    <div class="kicker">核心操作</div>
+    <h2 class="section-title">排列与调整</h2>
+    <p class="body-text">
+      切好了片段、裁掉了废片，接下来是调整顺序。把片段拖到对的位置，故事就成立了。
+    </p>
+
+    <ul class="diamond-list">
+      <li><strong>拖拽排列</strong>——按住片段往左或往右拖，松手就放到新位置。剪映会自动吸附到相邻片段的边缘。</li>
+      <li><strong>跨轨道拖拽</strong>——可以把片段从一个轨道拖到另一个轨道。比如把视频从主轨道拖到上面的轨道，给主轨道留出位置放其他画面。</li>
+      <li><strong>微调位置</strong>——放大时间线（用缩放滑块或 Ctrl + 加号），拖拽时能更精确地对齐。缩放越大，拖拽越精细。</li>
+      <li><strong>撤销是好朋友</strong>——操作不满意？Ctrl+Z 撤销，可以连续按多次。别怕试错。</li>
+    </ul>
+
+    <p class="body-text" style="margin-top:24px">
+      <strong>实操建议</strong>：先粗剪——把所有素材按大致顺序排好，删掉明显不要的。再精剪——逐帧调整每个片段的起点和终点。这是专业剪辑师的标准流程，叫"先粗后精"。
+    </p>
+  </div>
+</section>
+
+<!-- ===== 常见误解 ===== -->
+<section class="section grain">
+  <div class="container">
+    <div class="kicker">常见误解</div>
+    <h2 class="section-title">新手容易踩的坑</h2>
+
+    <div class="compare-panel">
+      <div class="compare-side compare-left">
+        <div class="compare-label">错误理解</div>
+        <div class="compare-item">"分割会破坏原素材文件。"</div>
+        <div class="compare-item">"删除片段后必须手动拖回来填补空隙。"</div>
+        <div class="compare-item">"片段越长越好，先放上去再慢慢裁。"</div>
+      </div>
+      <div class="compare-side compare-right">
+        <div class="compare-label">正确理解</div>
+        <div class="compare-item">分割只在时间线上操作，原始视频文件毫发无损。你可以随时撤销或重新拼接。</div>
+        <div class="compare-item">用波纹删除（Shift+Delete），后面的片段会自动前移补齐空隙，完全不用手动拖。</div>
+        <div class="compare-item">先粗后精：先快速浏览素材，粗略分割排列，再逐段精修。一开始就追求完美会严重拖慢进度。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 理解检查 ===== -->
+<section class="section grain" style="background:var(--cream)">
+  <div class="container">
+    <div class="kicker">理解检查</div>
+    <h2 class="section-title orange">你掌握了吗</h2>
+    <p class="body-text">
+      试着先自己回答，再点击卡片翻开答案。
+    </p>
+
+    <div class="flip-grid">
+      <div class="flip-card">
+        <div class="flip-card-inner">
+          <div class="flip-face flip-front">
+            <div class="flip-q">分割操作和裁剪操作有什么区别？</div>
+            <div class="flip-hint">点击翻开答案</div>
+          </div>
+          <div class="flip-face flip-back">
+            <div class="flip-a">分割是把一个片段从中间切成两段，变成两个独立可操作的片段。裁剪是拖拽片段的左右边缘来缩短长度，不增加片段数量。实际使用中经常配合：先分割再删除中间不需要的部分，或直接裁剪掉头尾废片。</div>
+            <div class="flip-hint">点击翻回问题</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flip-card">
+        <div class="flip-card-inner">
+          <div class="flip-face flip-front">
+            <div class="flip-q">普通删除和波纹删除的区别是什么？什么时候用波纹删除？</div>
+            <div class="flip-hint">点击翻开答案</div>
+          </div>
+          <div class="flip-face flip-back">
+            <div class="flip-a">普通删除移除片段但留下空隙，后面的内容不会移动。波纹删除（Shift+Delete）移除片段后，后面的内容自动前移补齐空隙。当你确定不需要某个片段且希望时间线保持紧凑时，用波纹删除。当你需要在空隙位置插入其他内容时，用普通删除。</div>
+            <div class="flip-hint">点击翻回问题</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flip-card">
+        <div class="flip-card-inner">
+          <div class="flip-face flip-front">
+            <div class="flip-q">"先粗后精"是什么意思？为什么推荐这种工作方式？</div>
+            <div class="flip-hint">点击翻开答案</div>
+          </div>
+          <div class="flip-face flip-back">
+            <div class="flip-a">先粗后精是专业剪辑师的标准流程：第一步粗剪——快速浏览所有素材，按大致顺序排列，删掉明显不需要的部分，目标是搭出整体框架。第二步精剪——逐段调整每个片段的起止点，精确到帧。这样做的原因是：一开始就追求完美会严重拖慢进度，而且粗剪后你才能看清整体节奏，做出更好的精剪决策。</div>
+            <div class="flip-hint">点击翻回问题</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 下一模块预告 ===== -->
+<section class="next-module blue-section grain">
+  <div class="inset-frame"></div>
+  <div class="container">
+    <div class="kicker">下一模块</div>
+    <h2 class="section-title">转场与动画</h2>
+    <p class="body-text">
+      片段切好了、排好了，但段落之间硬切会显得突兀。下一模块学习转场——让画面从一段流畅地过渡到另一段，以及关键帧动画——让静止的画面动起来。
+    </p>
+    <div class="next-arrow">→</div>
+  </div>
+</section>
+
+<!-- ===== Ribbon footer ===== -->
+<div class="ribbon grain">
+  耕读 · hugo · 剪映从入门到熟练 · 模块 02 / 08 · 耕读 · hugo · 剪映从入门到熟练 · 模块 02 / 08 ·
+</div>
+
+<!-- ===== Embedded Markdown ===== -->
+<script type="text/markdown" id="doc-markdown">
+# 时间线与基础剪辑 — 分割、裁剪、排列
+
+> 模块 2 / 8 · 剪映从入门到熟练
+
+## 为什么这一步最重要
+
+时间线是剪辑的心脏。所有花哨的效果——转场、字幕、滤镜——都建立在时间线之上。分割、裁剪、排列，这三个操作占了一个剪辑师 80% 的工作时间。
+
+想象你在厨房做菜：素材是食材，时间线是砧板。你得先切菜、分盘、摆好顺序，才能下锅炒。
+
+## 时间线解剖
+
+时间线由以下部件组成：
+
+1. **轨道头** — 左侧区域，显示轨道名称（视频轨道、音频轨道、文字轨道），可以静音、隐藏、锁定轨道
+2. **片段** — 时间线上的每个色块，代表一段视频、音频或文字。可以拖拽、分割、删除
+3. **播放头** — 竖直的红色线条，标记当前预览位置。拖动它或按空格键播放
+4. **标尺** — 顶部的时间刻度，显示时间位置
+5. **缩放滑块** — 放大或缩小时间线，放大后能更精确地操作
+
+## 分割——最常用的操作
+
+1. 把播放头移到要切的位置
+2. 点击「分割」按钮，或按 Ctrl+B（Windows）/ Cmd+B（Mac）
+3. 片段被切成两段，可以分别操作
+
+分割只在时间线上操作，原始视频文件不受影响。
+
+## 裁剪与删除
+
+- **拖拽边缘裁剪** — 把鼠标放在片段左右边缘，出现双向箭头后拖动，缩短或延长片段
+- **分割 + 删除** — 先分割再选中不需要的部分按 Delete
+- **波纹删除（推荐）** — Shift+Delete，片段被删后后面的内容自动前移补齐空隙
+
+普通删除留空隙，波纹删除自动补齐。不需要空隙时优先用波纹删除。
+
+## 排列与调整
+
+- **拖拽排列** — 按住片段左右拖动，自动吸附到相邻片段边缘
+- **跨轨道拖拽** — 可以把片段从一个轨道拖到另一个轨道
+- **微调位置** — 放大时间线后拖拽更精确
+- **撤销** — Ctrl+Z，可连续按多次
+
+**实操建议**：先粗后精——先快速排列所有素材、删掉明显不要的（粗剪），再逐段精修起点和终点（精剪）。
+
+## 常见误解
+
+- **"分割会破坏原素材"** — 不会。分割只在时间线上操作，原始文件不变。
+- **"删除后必须手动拖回来"** — 不用。用波纹删除（Shift+Delete），自动补齐。
+- **"片段越长越好，先放上去再裁"** — 先粗后精更高效。一开始就追求完美会拖慢进度。
+
+## 理解检查
+
+1. 分割和裁剪有什么区别？
+   → 分割把一个片段切成两段（增加片段数）；裁剪拖拽边缘缩短长度（不增加片段数）
+
+2. 普通删除和波纹删除的区别？
+   → 普通删除留空隙，波纹删除自动补齐。不需要空隙时用波纹删除
+
+3. "先粗后精"是什么意思？
+   → 先快速粗剪搭框架，再逐段精修。这样更高效，且粗剪后能看清整体节奏
+
+## 下一步
+
+片段切好了、排好了，下一模块学习转场——让画面从一段流畅过渡到另一段，以及关键帧动画——让静止的画面动起来。
+</script>
+
+<!-- ===== JavaScript ===== -->
+<script>
+// ===== Timeline anatomy tour =====
+var anatomySteps = {
+  corner: {
+    title: '轨道头',
+    desc: '时间线左侧的区域。每个轨道的左边都有一个轨道头，显示轨道名称（视频、音频、文字），并配有静音、隐藏、锁定等开关。点击轨道头可以选中整个轨道。'
+  },
+  trackhead: {
+    title: '轨道头',
+    desc: '每个轨道左侧的标签区域。显示轨道类型，并提供静音（隐藏声音）、隐藏画面、锁定（防止误操作）等控制。上方的轨道会遮住下方的轨道——这和 Photoshop 图层逻辑一样。'
+  },
+  clip: {
+    title: '片段',
+    desc: '时间线上的每个色块就是一个片段。蓝色通常是视频，橙色是文字或图片。片段可以拖拽移动位置、分割成多段、裁剪边缘缩短长度、删除。你 80% 的操作都是在片段上进行的。'
+  },
+  ruler: {
+    title: '标尺',
+    desc: '时间线顶部的时间刻度。显示当前时间位置，帮你定位分割点。播放头所在的时间会实时显示在标尺上方。'
+  },
+  playhead: {
+    title: '播放头',
+    desc: '那根竖直的红线就是播放头。它标记当前预览的位置——预览窗口显示的就是播放头所在帧的画面。拖动它可以快速定位，按空格键从播放头位置开始播放。分割操作就是在播放头位置切开的。'
+  }
+};
+
+document.querySelectorAll('[data-ta]').forEach(function(el) {
+  el.addEventListener('click', function() {
+    var key = el.dataset.ta;
+    var step = anatomySteps[key];
+    if (!step) return;
+    document.getElementById('anatomyTitle').textContent = step.title;
+    document.getElementById('anatomyDesc').textContent = step.desc;
+    document.querySelectorAll('[data-ta]').forEach(function(e) { e.classList.remove('active'); });
+    el.classList.add('active');
+  });
+});
+
+// Also make ruler clickable
+document.querySelector('.tl-ruler').addEventListener('click', function() {
+  document.getElementById('anatomyTitle').textContent = anatomySteps.ruler.title;
+  document.getElementById('anatomyDesc').textContent = anatomySteps.ruler.desc;
+  document.querySelectorAll('[data-ta]').forEach(function(e) { e.classList.remove('active'); });
+});
+// And playhead
+document.querySelector('.tl-playhead-vis').addEventListener('click', function(e) {
+  e.stopPropagation();
+  document.getElementById('anatomyTitle').textContent = anatomySteps.playhead.title;
+  document.getElementById('anatomyDesc').textContent = anatomySteps.playhead.desc;
+  document.querySelectorAll('[data-ta]').forEach(function(e) { e.classList.remove('active'); });
+});
+
+// ===== Split demo =====
+var sdClips = [];
+var sdPlayhead = 30;
+var sdSplitCount = 0;
+
+function sdInit() {
+  sdClips = [
+    { id: 'a', name: '片段 A', start: 2, end: 48, color: 'blue' },
+    { id: 'b', name: '片段 B', start: 50, end: 98, color: 'orange' }
+  ];
+  sdPlayhead = 30;
+  sdSplitCount = 0;
+  sdRender();
+}
+
+function sdRender() {
+  var track = document.getElementById('sdTrack');
+  track.innerHTML = '';
+  sdClips.forEach(function(clip) {
+    var el = document.createElement('div');
+    el.className = 'sd-clip sd-clip-' + clip.color;
+    el.style.left = clip.start + '%';
+    el.style.width = Math.max(2, clip.end - clip.start - 1) + '%';
+    el.textContent = clip.name;
+    if (clip.end - clip.start < 8) el.style.fontSize = '10px';
+    track.appendChild(el);
+  });
+  document.getElementById('sdPlayhead').style.left = sdPlayhead + '%';
+  document.getElementById('sdCount').textContent = '已分割 ' + sdSplitCount + ' 次';
+
+  var overClip = null;
+  for (var i = 0; i < sdClips.length; i++) {
+    if (sdPlayhead > sdClips[i].start && sdPlayhead < sdClips[i].end) {
+      overClip = sdClips[i];
+      break;
+    }
+  }
+  var info = document.getElementById('sdInfo');
+  var btn = document.getElementById('sdSplitBtn');
+  if (overClip) {
+    info.innerHTML = '播放头位于<strong>「' + overClip.name + '」</strong>上方。点击「分割」将它切成两段。';
+    btn.disabled = false;
+  } else {
+    info.innerHTML = '播放头不在任何片段上。拖动红色播放头到蓝色或橙色片段上方再分割。';
+    btn.disabled = true;
+  }
+}
+
+function sdSplit() {
+  for (var i = 0; i < sdClips.length; i++) {
+    var c = sdClips[i];
+    if (sdPlayhead > c.start + 3 && sdPlayhead < c.end - 3) {
+      var newName = c.name.replace(/[①②③④⑤]/g, '');
+      var part1 = { id: c.id + '_1', name: newName + '①', start: c.start, end: sdPlayhead, color: c.color };
+      var part2 = { id: c.id + '_2', name: newName + '②', start: sdPlayhead, end: c.end, color: c.color === 'blue' ? 'blue' : 'orange' };
+      if (part2.color === 'orange') part2.color = 'orange';
+      sdClips.splice(i, 1, part1, part2);
+      sdSplitCount++;
+      sdRender();
+      return;
+    }
+  }
+  // If too close to edge
+  var info = document.getElementById('sdInfo');
+  info.innerHTML = '播放头太靠近片段边缘了，移到片段中间再试试。';
+}
+
+// Playhead dragging
+var sdDragging = false;
+var sdWrap = document.getElementById('sdTrackWrap');
+
+function sdUpdatePlayhead(clientX) {
+  var rect = sdWrap.getBoundingClientRect();
+  var x = clientX - rect.left;
+  sdPlayhead = Math.max(0, Math.min(100, (x / rect.width) * 100));
+  sdRender();
+}
+
+sdWrap.addEventListener('mousedown', function(e) {
+  sdDragging = true;
+  sdUpdatePlayhead(e.clientX);
+});
+document.addEventListener('mousemove', function(e) {
+  if (sdDragging) sdUpdatePlayhead(e.clientX);
+});
+document.addEventListener('mouseup', function() { sdDragging = false; });
+
+// Touch events
+sdWrap.addEventListener('touchstart', function(e) {
+  sdDragging = true;
+  sdUpdatePlayhead(e.touches[0].clientX);
+  e.preventDefault();
+}, { passive: false });
+document.addEventListener('touchmove', function(e) {
+  if (sdDragging) {
+    sdUpdatePlayhead(e.touches[0].clientX);
+    e.preventDefault();
+  }
+}, { passive: false });
+document.addEventListener('touchend', function() { sdDragging = false; });
+
+document.getElementById('sdSplitBtn').addEventListener('click', sdSplit);
+document.getElementById('sdResetBtn').addEventListener('click', sdInit);
+
+// ===== Flip cards =====
+document.querySelectorAll('.flip-card').forEach(function(card) {
+  card.addEventListener('click', function() {
+    card.classList.toggle('flipped');
+  });
+});
+
+// ===== Copy buttons =====
+document.getElementById('copyHtmlBtn').addEventListener('click', function() {
+  var self = this;
+  navigator.clipboard.writeText('<!doctype html>\n' + document.documentElement.outerHTML).then(function() {
+    self.textContent = '已复制 ✓';
+    setTimeout(function() { self.textContent = '复制 HTML'; }, 2000);
+  });
+});
+
+document.getElementById('copyMdBtn').addEventListener('click', function() {
+  var self = this;
+  navigator.clipboard.writeText(document.getElementById('doc-markdown').textContent.trim()).then(function() {
+    self.textContent = '已复制 ✓';
+    setTimeout(function() { self.textContent = '复制 Markdown'; }, 2000);
+  });
+});
+
+// ===== Initialize =====
+sdInit();
+</script>
+
+</body>
+</html>

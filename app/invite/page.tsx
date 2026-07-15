@@ -3,6 +3,7 @@
 
 import { cookies } from "next/headers";
 import { OWNER_COOKIE } from "@/lib/owner";
+import { getAuthorRecord } from "@/lib/store";
 import { InviteClient } from "./InviteClient";
 
 export const dynamic = "force-dynamic";
@@ -10,5 +11,10 @@ export const dynamic = "force-dynamic";
 export default async function InvitePage() {
   const value = (await cookies()).get(OWNER_COOKIE)?.value ?? "";
   const viewer = value.includes(".") ? value.slice(0, value.indexOf(".")) : null;
-  return <InviteClient viewer={viewer} />;
+  let viewerName: string | null = null;
+  if (viewer) {
+    const record = await getAuthorRecord(viewer);
+    viewerName = record?.name ?? null;
+  }
+  return <InviteClient viewer={viewer} viewerName={viewerName} />;
 }

@@ -64,7 +64,7 @@ export function Polaroid({ src, name, since, index }: { src: string; name: strin
         layoutId={id}
         transition={MORPH}
         onClick={() => setOpen(true)}
-        aria-label={`enlarge ${name}'s photo`}
+        aria-label={`放大 ${name} 的照片`}
         style={{
           position: "absolute",
           top: "-26px",
@@ -126,8 +126,7 @@ export function Polaroid({ src, name, since, index }: { src: string; name: strin
                 <div style={{ fontSize: "clamp(24px, 6vw, 34px)", lineHeight: 1.05 }}>{name.toLowerCase()}</div>
                 {since && (
                   <div style={{ fontSize: "clamp(13px, 3vw, 16px)", opacity: 0.6, marginTop: "2px" }}>
-                    on the shelf since {since}
-                  </div>
+                                          加入于 {since}</div>
                 )}
               </div>
             </motion.div>
@@ -158,7 +157,7 @@ export function DepthTag({ doc, tilt = 0 }: { doc: DocMeta; tilt?: number }) {
         transition={MORPH}
         role="button"
         tabIndex={0}
-        title={`${doc.wordCount.toLocaleString()} words written so far — click for the depth report`}
+        title={`${doc.wordCount.toLocaleString()} 字已写 — 点击查看深度报告`}
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -238,7 +237,7 @@ function DepthReport({ doc, fill }: { doc: DocMeta; fill: string }) {
       }}
     >
       <div style={{ fontFamily: sharpie, fontSize: "24px", lineHeight: 1.1, transform: "rotate(-1.2deg)" }}>
-        depth report
+        深度报告
       </div>
       <div style={{ fontFamily: script, fontWeight: 700, fontSize: "21px", marginTop: "2px", opacity: 0.85 }}>
         {doc.subject.toLowerCase()}
@@ -265,11 +264,11 @@ function DepthReport({ doc, fill }: { doc: DocMeta; fill: string }) {
               <span style={{ fontSize: "19px", filter: reached ? "none" : "grayscale(1)" }}>{l.emoji}</span>
               <span style={{ fontFamily: slab, fontWeight: 600, fontSize: "14.5px", flex: 1 }}>{l.label}</span>
               <span style={{ fontFamily: slab, fontSize: "12px", opacity: 0.7 }}>
-                {l.minWords === 0 ? "first words" : `${l.minWords.toLocaleString()}+ words`}
+                {l.minWords === 0 ? "起步" : `${l.minWords.toLocaleString()}+ 字`}
               </span>
               {current && (
                 <span style={{ fontFamily: sharpie, fontSize: "13px", transform: "rotate(-2deg)", whiteSpace: "nowrap" }}>
-                  ← here
+                  ← 在这
                 </span>
               )}
             </div>
@@ -279,26 +278,26 @@ function DepthReport({ doc, fill }: { doc: DocMeta; fill: string }) {
 
       {/* the numbers */}
       <div style={{ display: "flex", gap: "10px 22px", flexWrap: "wrap", marginTop: "16px", fontFamily: slab, fontSize: "14px", lineHeight: 1.5 }}>
-        <span><strong>{doc.wordCount.toLocaleString()}</strong> words written</span>
-        {doc.readMinutes > 0 && <span><strong>~{doc.readMinutes} min</strong> read</span>}
+        <span><strong>{doc.wordCount.toLocaleString()}</strong> 字已写</span>
+        {doc.readMinutes > 0 && <span><strong>~{doc.readMinutes} 分钟</strong>阅读</span>}
         {doc.modulesTotal > 0 && (
-          <span><strong>{doc.modulesDone} / {doc.modulesTotal}</strong> modules{doc.currentModule ? ` — on: ${doc.currentModule}` : ""}</span>
+          <span><strong>{doc.modulesDone} / {doc.modulesTotal}</strong> 个模块{doc.currentModule ? ` — 当前：${doc.currentModule}` : ""}</span>
         )}
       </div>
 
       {/* the forecast, scrawled */}
       <div style={{ marginTop: "14px", fontFamily: script, fontWeight: 700, fontSize: "19px", lineHeight: 1.3 }}>
         {headed > now ? (
-          <>at this pace the finished dive lands in {DEPTH_LEVELS[headed].label} {DEPTH_LEVELS[headed].emoji} — roughly {projectedWords.toLocaleString()} words</>
+          <>按这个节奏，完稿将抵达{DEPTH_LEVELS[headed].label} {DEPTH_LEVELS[headed].emoji} — 约计 {projectedWords.toLocaleString()} 字</>
         ) : next ? (
-          <>{wordsToNext.toLocaleString()} more words and they hit {next.label} {next.emoji}</>
+          <>再写 {wordsToNext.toLocaleString()} 字即可抵达 {next.label} {next.emoji}</>
         ) : (
-          <>the abyss. there is no deeper. 🦑</>
+          <>深渊。没有更深的了。🦑</>
         )}
       </div>
       {headed > now && next && (
         <div style={{ marginTop: "4px", fontFamily: script, fontWeight: 600, fontSize: "16px", opacity: 0.75 }}>
-          ({wordsToNext.toLocaleString()} words to {next.label} {next.emoji})
+          （距 {next.label} {next.emoji} 还差 {wordsToNext.toLocaleString()} 字）
         </div>
       )}
     </div>
@@ -312,13 +311,16 @@ function DepthReport({ doc, fill }: { doc: DocMeta; fill: string }) {
 
 export function InterestsTag({
   author,
+  authorName,
   interests,
   index,
 }: {
   author: string;
+  authorName?: string;
   interests: string;
   index: number;
 }) {
+  const displayName = authorName || author;
   const [open, setOpen] = useState(false);
   const id = `interests-${author}`;
   const lean = index % 2 === 0 ? "-2.5deg" : "2deg";
@@ -329,7 +331,7 @@ export function InterestsTag({
         layoutId={id}
         transition={MORPH}
         onClick={() => setOpen(true)}
-        aria-label={`what ${author} is into`}
+        aria-label={`${displayName} 的兴趣`}
         style={{
           position: "absolute",
           top: "-14px",
@@ -348,7 +350,7 @@ export function InterestsTag({
           cursor: "zoom-in",
         }}
       >
-        interests ✎
+        兴趣 ✎
       </motion.button>
 
       <AnimatePresence>
@@ -368,13 +370,13 @@ export function InterestsTag({
               }}
             >
               <div style={{ fontFamily: sharpie, fontSize: "23px", lineHeight: 1.15, color: "#1E3A24", transform: "rotate(-1.2deg)" }}>
-                what {author}&apos;s into
+                {displayName} 在搞什么
               </div>
               <div style={{ marginTop: "14px", fontFamily: script, fontWeight: 600, fontSize: "25px", lineHeight: 1.3, color: ink }}>
                 {interests}
               </div>
               <div style={{ marginTop: "16px", fontFamily: slab, fontSize: "12.5px", opacity: 0.65, color: ink }}>
-                rewritten by {author}&apos;s agent with every note they pin
+                每次发布时由 {displayName} 的代理自动更新
               </div>
             </motion.div>
           </Backdrop>

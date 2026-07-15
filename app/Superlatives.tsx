@@ -35,7 +35,7 @@ export function Superlatives({
         layoutId="superlatives"
         transition={MORPH}
         onClick={() => setOpen(true)}
-        aria-label="board superlatives"
+        aria-label="布告板荣誉榜"
         style={{
           position: "relative",
           background: "#FFCC80",
@@ -66,7 +66,7 @@ export function Superlatives({
             boxShadow: "0 2px 4px rgba(45,42,38,0.5), inset -2px -2px 4px rgba(0,0,0,0.2)",
           }}
         />
-        superlatives 🏆
+        荣誉榜 🏆
       </motion.button>
 
       <AnimatePresence>
@@ -89,7 +89,7 @@ export function Superlatives({
                 }}
               >
                 <div style={{ fontFamily: sharpie, fontSize: "24px", lineHeight: 1.1, transform: "rotate(-1.2deg)" }}>
-                  board superlatives
+                  布告板荣誉榜
                 </div>
                 <div style={{ display: "grid", gap: "14px", marginTop: "18px" }}>
                   {awards.map((a) => (
@@ -120,7 +120,7 @@ export function Superlatives({
                   {collective}
                 </div>
                 <div style={{ marginTop: "10px", fontFamily: slab, fontSize: "12.5px", opacity: 0.65 }}>
-                  awards rotate as the board changes — nobody keeps a trophy for long
+                  奖项随布告板变化而轮换 — 没人能长期霸占
                 </div>
               </motion.div>
           </Overlay>
